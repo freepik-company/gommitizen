@@ -51,6 +51,27 @@ func (version *VersionData) GetFilePath() string {
 
 // Funciones públicas
 
+func (version *VersionData) Initialize(path string) error {
+	// check .version.json does not exist
+	configFile := path + "/.version.json"
+	if _, err := os.Stat(configFile); err == nil {
+		fmt.Println("El repositorio ya está inicializado")
+		os.Exit(1)
+	}
+
+	version.Commit = "HEAD^"
+	version.Version = "0.0.0"
+	version.filePath = configFile
+
+	err := version.Save()
+	if err != nil {
+		fmt.Println("Error al guardar el archivo .version.json:", err)
+		return err
+	}
+
+	return nil
+}
+
 func (version *VersionData) Save() error {
 	jsonData, err := version.String()
 
@@ -62,6 +83,7 @@ func (version *VersionData) Save() error {
 
 	return nil
 }
+
 func (version *VersionData) String() (string, error) {
 	jsonData, err := json.MarshalIndent(version, "", "  ")
 
@@ -147,7 +169,7 @@ func (version *VersionData) IsSomeFileModified() (bool, error) {
 	errUpdate := git.UpdateData()
 	if errUpdate != nil {
 		return false, &VersionError{
-			Message: "Error al actualizar los datos de Git",
+			Message: "Error al actualizar los datos de Git: " + errUpdate.Error(),
 		}
 	}
 	changedFiles := git.GetChangedFiles()
