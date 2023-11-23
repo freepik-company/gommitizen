@@ -16,3 +16,15 @@ docker:
 	@echo
 	@echo "  # docker run -it $(BINARY_NAME):$(TAG) help"
 	@echo
+
+install:
+	@echo "Installing..."
+	@go install
+	@echo
+	@echo "Done!"
+
+clean:
+	@echo "Cleaning..."
+	@rm -rf bin/*
+	@echo
+	@echo "Done!"
