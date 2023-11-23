@@ -14,6 +14,7 @@ import (
 )
 
 // Tipo de error personalizado
+
 type VersionError struct {
 	Message string
 }
@@ -23,13 +24,19 @@ func (e *VersionError) Error() string {
 }
 
 // Gestiona la información de la versión para nuestro proyecto
+
 type VersionData struct {
-	Version string `json:"version"`
-	Commit string `json:"commit"`
+	Version  string `json:"version"`
+	Commit   string `json:"commit"`
 	filePath string
 }
 
+func NewVersionData(version string, commit string, filePath string) *VersionData {
+	return &VersionData{Version: version, Commit: commit, filePath: filePath}
+}
+
 // Métodos getter
+
 func (version *VersionData) GetVersion() string {
 	return version.Version
 }
@@ -44,7 +51,28 @@ func (version *VersionData) GetFilePath() string {
 
 // Funciones públicas
 
-// Busca archivos .version.json en un directorio dado y sus subdirectorios
+func (version *VersionData) Save() error {
+	jsonData, err := version.String()
+
+	err = os.WriteFile(version.filePath, []byte(jsonData), 0644)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+func (version *VersionData) String() (string, error) {
+	jsonData, err := json.MarshalIndent(version, "", "  ")
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonData), nil
+}
+
+// FindFCVersionFiles Busca archivos .version.json en un directorio dado y sus subdirectorios
 func FindFCVersionFiles(rootDir string) ([]string, error) {
 	var fileList []string
 
@@ -65,7 +93,7 @@ func FindFCVersionFiles(rootDir string) ([]string, error) {
 
 // Métodos públicos
 
-// Obtene los valores de la versión y el commit del archivo .version.json
+// ReadData Obtene los valores de la versión y el commit del archivo .version.json
 func (version *VersionData) ReadData(filePath string) error {
 	version.filePath = filePath
 
@@ -84,7 +112,7 @@ func (version *VersionData) ReadData(filePath string) error {
 	return nil
 }
 
-// Devuelve si algún archivo ha sido modificado en Git desde un commit dado en un directorio dado
+// IsSomeFileModified Devuelve si algún archivo ha sido modificado en Git desde un commit dado en un directorio dado
 func (version *VersionData) IsSomeFileModified() (bool, error) {
 	if version.Commit == "" || version.filePath == "" {
 		return false, &VersionError{
@@ -113,7 +141,7 @@ func (version *VersionData) IsSomeFileModified() (bool, error) {
 
 	// Obtiene la lista de archivos modificados en Git desde un commit dado en un directorio dado
 	git := git.Git{
-		DirPath: dirPath,
+		DirPath:    dirPath,
 		FromCommit: version.Commit,
 	}
 	errUpdate := git.UpdateData()
@@ -128,8 +156,7 @@ func (version *VersionData) IsSomeFileModified() (bool, error) {
 	return len(changedFiles) > 0, nil
 }
 
-
-// Actualiza el valor de la versión en el archivo .version.json en función de los cambios en Git
+// UpdateVersion Actualiza el valor de la versión en el archivo .version.json en función de los cambios en Git
 func (version *VersionData) UpdateVersion() (string, error) {
 	if version.Version == "" || version.Commit == "" {
 		return "", &VersionError{
@@ -158,7 +185,7 @@ func (version *VersionData) UpdateVersion() (string, error) {
 
 	// Crea una instancia de Git
 	git := git.Git{
-		DirPath: dirPath,
+		DirPath:    dirPath,
 		FromCommit: version.Commit,
 	}
 
@@ -182,7 +209,7 @@ func (version *VersionData) UpdateVersion() (string, error) {
 	if incType != "none" {
 		// Informamos del incremento de versión, actualizamos el valor de la versión y el commit y actualizamos Git
 		fmt.Println("Incrementando la versión de " + currentVersion + " a " + newVersion)
-	  version.Commit = git.LastCommit
+		version.Commit = git.LastCommit
 		version.Version = newVersion
 
 		// Serializa la estructura actualizada de nuevo en JSON
@@ -285,13 +312,13 @@ func determineVersionBump(commitMessages []string) string {
 	return "none"
 }
 
-// Incrementa la versión actual en función del tipo de incremento dado y devuelve la nueva versión 
-func incrementVersion(version string, incType string) (string, string , error) {
+// Incrementa la versión actual en función del tipo de incremento dado y devuelve la nueva versión
+func incrementVersion(version string, incType string) (string, string, error) {
 	currentVersion, err := semver.NewVersion(version)
 	if err != nil {
 		return "", "", err
 	}
-	
+
 	var newVersion semver.Version
 	if incType == "major" {
 		newVersion = currentVersion.IncMajor() // Incrementa el mayor (por ejemplo, de 1.2.3 a 2.0.0)
