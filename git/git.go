@@ -1,6 +1,6 @@
 package git
 
-import(
+import (
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -17,12 +17,12 @@ func (e *GitError) Error() string {
 
 // Controla la información de Git para nuestro proyecto
 type Git struct {
-	DirPath string
-	FromCommit string
-	LastCommit string
-	ChangedFiles []string
+	DirPath        string
+	FromCommit     string
+	LastCommit     string
+	ChangedFiles   []string
 	CommitMessages []string
-	ExcludedFiles []string
+	ExcludedFiles  []string
 }
 
 // funciones setter
@@ -137,7 +137,6 @@ func (git *Git) UpdateGit(files []string, commitMessage string, tagMessage strin
 	return output, nil
 }
 
-
 // Métodos privados
 
 // Obtiene la lista de archivos modificados en Git desde un commit dado en un directorio dado
@@ -166,7 +165,7 @@ func (git *Git) getListOfModifiedFilesInGitFromAGivenCommitInDirExcludingFiles()
 // Obtiene los mensajes de commit para los archivos modificados en Git desde un commit dado en un directorio dado
 func (git *Git) getCommitMessages() ([]string, error) {
 	// Construir el comando git log con opciones para obtener mensajes y archivos modificados
-	args := append([]string{"log", "--pretty=%s", "--name-only", git.FromCommit + ".."}, git.ChangedFiles...)
+	args := append([]string{"log", "--pretty=%s", "--name-only", git.FromCommit + "..", "--"}, git.ChangedFiles...)
 	cmd := exec.Command("git", args...)
 
 	output, err := cmd.Output()
