@@ -1,4 +1,4 @@
-module gomitizen
+module gommitizen
 
 go 1.20
 

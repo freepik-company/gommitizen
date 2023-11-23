@@ -1,4 +1,4 @@
-BINARY_NAME=gomitizen
+BINARY_NAME=gommitizen
 TAG=$(shell git describe --tags --always --dirty)
 
 all: build install

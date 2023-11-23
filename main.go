@@ -6,7 +6,7 @@ import (
 	"flag"
 	"path/filepath"
 
-	"gomitizen/version"
+	"gommitizen/version"
 )
 
 func main() {

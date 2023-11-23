@@ -10,7 +10,7 @@ import (
 
 	"github.com/Masterminds/semver"
 
-	"gomitizen/git"
+	"gommitizen/git"
 )
 
 // Tipo de error personalizado
