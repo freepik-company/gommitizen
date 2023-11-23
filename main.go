@@ -18,7 +18,7 @@ func main() {
 
 	// Verificar si se proporcionó al menos un comando
 	if len(os.Args) < 2 {
-		fmt.Println("Uso: go run main.go <comando> [opciones]")
+		fmt.Printf("Uso: %s <comando> [opciones]\n", os.Args[0])
 		os.Exit(1)
 	}
 
@@ -38,7 +38,7 @@ func main() {
 		fmt.Printf("  %s init -path <ruta>\n", os.Args[0])
 		fmt.Printf("  %s bump\n", os.Args[0])
 	default:
-		fmt.Println("Comando no reconocido. Ejecuta 'go run main.go help' para obtener ayuda.")
+		fmt.Printf("Comando no reconocido. Ejecuta '%s help' para obtener ayuda.\n", os.Args[0])
 		os.Exit(1)
 	}
 }
