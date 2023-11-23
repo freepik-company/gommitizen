@@ -17,7 +17,7 @@ docker:
 	@echo "  # docker run -it $(BINARY_NAME):$(TAG) help"
 	@echo
 
-install:
+install: build
 	@echo "Installing..."
 	@go install
 	@echo
