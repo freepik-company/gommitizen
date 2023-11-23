@@ -1,0 +1,151 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"flag"
+	"path/filepath"
+
+	"fcversion/version"
+)
+
+/* TODO
+- [ ] Añadir soporte para actualizar la versión de otros ficheros (en principio json, como por ejemplo Chart.yaml)
+- [ ] Añadir soporte a bump para poder incrementar versión mayor, menor o parche a demanda sin tener en cuenta los commits
+- [ ] Añadir soporte para ChangeLog
+- [X] Añadir soporte para incrementar versión de un projecto en concreto
+- [X] Cambiar el ejemplo de uso y poner el nombre del programa en lugar de "go run main.go"
+- [X] Dividir la aplicación en varios ficheros en función de su funcionalidad y crear un Makefile para compilarla
+- [ ] Implementar spf13/cobra para mejorar la experiencia de usuario (https://github.com/spf13/cobra)
+*/
+
+func main() {
+	// Definir los flags para los parámetros de línea de comandos
+	initCmd := flag.NewFlagSet("init", flag.ExitOnError)
+
+	// Flags específicos para cada comando
+	initPath := initCmd.String("path", "", "Ruta del repositorio para la inicialización")
+
+	// Verificar si se proporcionó al menos un comando
+	if len(os.Args) < 2 {
+		fmt.Println("Uso: go run main.go <comando> [opciones]")
+		os.Exit(1)
+	}
+
+	// Analizar los parámetros de línea de comandos
+	switch os.Args[1] {
+	case "init":
+		initCmd.Parse(os.Args[2:])
+		initialize(*initPath)
+	case "bump":
+		if len(os.Args) == 2 {
+			bumpVersion()
+		} else if len(os.Args) == 3 {
+			bumpProjectVersion(os.Args[2])
+		}
+	case "help":
+		fmt.Println("Uso:")
+		fmt.Printf("  %s init -path <ruta>\n", os.Args[0])
+		fmt.Printf("  %s bump\n", os.Args[0])
+	default:
+		fmt.Println("Comando no reconocido. Ejecuta 'go run main.go help' para obtener ayuda.")
+		os.Exit(1)
+	}
+}
+
+func initialize(path string) {
+	// Lógica para inicializar el repositorio
+	fmt.Printf("Inicializando en la ruta: %s\n", path)
+	// ...
+}
+
+// Ejecuta el comando bump para un proyecto en concreto
+func bumpProjectVersion(project string) {
+	rootDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error al obtener el directorio actual:", err)
+		os.Exit(1)
+	}
+
+	filePath := filepath.Join(rootDir, project, ".fc-version.json")
+
+	if bumpRun(rootDir, filePath) != nil {
+		fmt.Println("Error al ejecutar bump:", err)
+		os.Exit(1)
+	}
+}
+
+// Ejecuta el comando bump para todos los archivos .fc-version.json en el directorio actual y sus subdirectorios
+func bumpVersion() {
+	// Obtén el directorio actual
+	rootDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error al obtener el directorio actual:", err)
+		os.Exit(1)
+	}
+
+	// Encuentra todos los archivos .fc-version.json en el directorio actual y sus subdirectorios
+	fileList, err := version.FindFCVersionFiles(rootDir)
+	if err != nil {
+		fmt.Println("Error al encontrar archivos .fc-version.json:", err)
+		os.Exit(1)
+	}
+
+	// Itera sobre los archivos encontrados
+	for _, filePath := range fileList {
+		err := bumpRun(rootDir, filePath)
+		if err != nil {
+			fmt.Println("Error al ejecutar bump:", err)
+			continue
+		}
+	}
+}
+
+// Ejecuta el comando bump para un archivo .fc-version.json
+func bumpRun(rootDir string, filePath string) error {
+	// Obtiene la ruta relativa al directorio actual
+	relativePath, err := filepath.Rel(rootDir, filePath)
+	if err != nil {
+		fmt.Println("Error al obtener la ruta relativa:", err)
+		return err
+	}
+
+	// Imprime el mensaje de inicio
+	fmt.Printf("\n* Ejecutando bump en proyecto %s\n\n", filepath.Dir(relativePath))
+
+	version := version.VersionData{}
+
+	errData := version.ReadData(filePath)
+	if errData != nil {
+		fmt.Println("Error al leer los datos de la versión:", errData)
+		return errData
+	}
+
+	modified, err := version.IsSomeFileModified()
+	if err != nil {
+		fmt.Println("Error al verificar si algún archivo ha sido modificado en Git:", err)
+		return err
+	}
+
+	// Si el archivo ha sido modificado, actualiza la versión
+	if modified {
+		currentVersion := version.GetVersion()
+		newVersion, err := version.UpdateVersion()
+		if err != nil {
+			fmt.Println("Error al actualizar la versión:", err)
+			return err
+		}
+
+		if newVersion == currentVersion {
+			fmt.Printf("No hay actualización de version en %s\n", relativePath)
+		} else {
+			fmt.Printf("Versión actualizada en %s\n", relativePath)
+		}
+	} else {
+		fmt.Printf("No se realizaron cambios en %s\n", relativePath)
+	}
+	fmt.Printf("\n")
+
+	return nil
+}
+
