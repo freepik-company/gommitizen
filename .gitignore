@@ -1,2 +1,21 @@
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/_test/
+
+# Vim
 *.swp
-bin/*
+*~
+
+# IDEs
+.idea/
+.vscode/
+*.code-workspace
+
+# Binaries
+bin/
