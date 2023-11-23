@@ -1,4 +1,4 @@
-module fcversion
+module gomitizen
 
 go 1.20
 

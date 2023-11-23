@@ -1,4 +1,5 @@
-BINARY_NAME=fc-version
+BINARY_NAME=gomitizen
+TAG=$(shell git describe --tags --always --dirty)
 
 all: build install
 
@@ -8,4 +9,10 @@ build:
 
 docker:
 	@echo "Building docker image..."
-	@docker build -t $(BINARY_NAME) .
+	@docker build -t $(BINARY_NAME):$(TAG) .
+	@echo
+	@echo "Done!"
+	@echo "May the docker be with you..."
+	@echo
+	@echo "  # docker run -it $(BINARY_NAME):$(TAG) help"
+	@echo

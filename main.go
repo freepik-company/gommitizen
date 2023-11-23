@@ -6,7 +6,7 @@ import (
 	"flag"
 	"path/filepath"
 
-	"fcversion/version"
+	"gomitizen/version"
 )
 
 func main() {
@@ -57,7 +57,7 @@ func bumpProjectVersion(project string) {
 		os.Exit(1)
 	}
 
-	filePath := filepath.Join(rootDir, project, ".fc-version.json")
+	filePath := filepath.Join(rootDir, project, ".version.json")
 
 	if bumpRun(rootDir, filePath) != nil {
 		fmt.Println("Error al ejecutar bump:", err)
@@ -65,7 +65,7 @@ func bumpProjectVersion(project string) {
 	}
 }
 
-// Ejecuta el comando bump para todos los archivos .fc-version.json en el directorio actual y sus subdirectorios
+// Ejecuta el comando bump para todos los archivos .version.json en el directorio actual y sus subdirectorios
 func bumpVersion() {
 	// Obtén el directorio actual
 	rootDir, err := os.Getwd()
@@ -74,10 +74,10 @@ func bumpVersion() {
 		os.Exit(1)
 	}
 
-	// Encuentra todos los archivos .fc-version.json en el directorio actual y sus subdirectorios
+	// Encuentra todos los archivos .version.json en el directorio actual y sus subdirectorios
 	fileList, err := version.FindFCVersionFiles(rootDir)
 	if err != nil {
-		fmt.Println("Error al encontrar archivos .fc-version.json:", err)
+		fmt.Println("Error al encontrar archivos .version.json:", err)
 		os.Exit(1)
 	}
 
@@ -91,7 +91,7 @@ func bumpVersion() {
 	}
 }
 
-// Ejecuta el comando bump para un archivo .fc-version.json
+// Ejecuta el comando bump para un archivo .version.json
 func bumpRun(rootDir string, filePath string) error {
 	// Obtiene la ruta relativa al directorio actual
 	relativePath, err := filepath.Rel(rootDir, filePath)

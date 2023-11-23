@@ -10,7 +10,7 @@ import (
 
 	"github.com/Masterminds/semver"
 
-	"fcversion/git"
+	"gomitizen/git"
 )
 
 // Tipo de error personalizado
@@ -44,7 +44,7 @@ func (version *VersionData) GetFilePath() string {
 
 // Funciones públicas
 
-// Busca archivos .fc-version.json en un directorio dado y sus subdirectorios
+// Busca archivos .version.json en un directorio dado y sus subdirectorios
 func FindFCVersionFiles(rootDir string) ([]string, error) {
 	var fileList []string
 
@@ -53,7 +53,7 @@ func FindFCVersionFiles(rootDir string) ([]string, error) {
 			return err
 		}
 
-		if strings.HasSuffix(info.Name(), ".fc-version.json") {
+		if strings.HasSuffix(info.Name(), ".version.json") {
 			fileList = append(fileList, path)
 		}
 
@@ -65,7 +65,7 @@ func FindFCVersionFiles(rootDir string) ([]string, error) {
 
 // Métodos públicos
 
-// Obtene los valores de la versión y el commit del archivo .fc-version.json
+// Obtene los valores de la versión y el commit del archivo .version.json
 func (version *VersionData) ReadData(filePath string) error {
 	version.filePath = filePath
 
@@ -88,7 +88,7 @@ func (version *VersionData) ReadData(filePath string) error {
 func (version *VersionData) IsSomeFileModified() (bool, error) {
 	if version.Commit == "" || version.filePath == "" {
 		return false, &VersionError{
-			Message: "No se ha especificado un commit o un archivo .fc-version.json",
+			Message: "No se ha especificado un commit o un archivo .version.json",
 		}
 	}
 
@@ -129,7 +129,7 @@ func (version *VersionData) IsSomeFileModified() (bool, error) {
 }
 
 
-// Actualiza el valor de la versión en el archivo .fc-version.json en función de los cambios en Git
+// Actualiza el valor de la versión en el archivo .version.json en función de los cambios en Git
 func (version *VersionData) UpdateVersion() (string, error) {
 	if version.Version == "" || version.Commit == "" {
 		return "", &VersionError{
@@ -222,9 +222,9 @@ func (version *VersionData) UpdateVersion() (string, error) {
 
 // Métodos privados
 
-// Obtiene el commit almacenado en el archivo .fc-version.json
+// Obtiene el commit almacenado en el archivo .version.json
 func (version *VersionData) getCommitValueFromJsonFile() (string, error) {
-	// Lee el contenido del archivo .fc-version.json
+	// Lee el contenido del archivo .version.json
 	content, err := ioutil.ReadFile(version.filePath)
 	if err != nil {
 		fmt.Println("Error al leer el contenido del archivo:", err)
@@ -242,9 +242,9 @@ func (version *VersionData) getCommitValueFromJsonFile() (string, error) {
 	return version.Commit, nil
 }
 
-// Obtiene el valir de commit almacenado en el archivo .fc-version.json
+// Obtiene el valir de commit almacenado en el archivo .version.json
 func (version *VersionData) getCurrentVersionFromJsonFile() (string, error) {
-	// Lee el contenido del archivo .fc-version.json
+	// Lee el contenido del archivo .version.json
 	content, err := ioutil.ReadFile(version.filePath)
 	if err != nil {
 		fmt.Println("Error al leer el contenido del archivo:", err)
