@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o /app/bin/fc-version
+RUN go build -o /app/bin/gommitizen
 
 # Path: Dockerfile
 FROM alpine:3.13
@@ -16,4 +16,4 @@ WORKDIR /app
 
 COPY --from=builder /app/bin/ /app/bin/
 
-ENTRYPOINT ["/app/bin/fc-version"]
+ENTRYPOINT ["/app/bin/gommitizen"]
