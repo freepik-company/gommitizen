@@ -25,19 +25,15 @@ jobs:
     - name: Test
       run: go test -v
 
-    - name: Get the version
-      id: version
-      run: echo ::set-output name=version::${GITHUB_REF#refs/tags/}
-
     - name: Copy, tag with version and create SHA256 checksum
       run: |
         mkdir -p releases
-        cp ./gommitizen releases/gommitizen_${{ steps.version.outputs.version }}
-        sha256sum gommitizen > releases/gommitizen_${{ steps.version.outputs.version }}.sha256
+        cp ./gommitizen releases/gommitizen
+        sha256sum gommitizen > releases/gommitizen.sha256
     - name: Create a new GitHub release
       uses: softprops/action-gh-release@v0.1.14
       with:
         files: |
-          releases/gommitizen_${{ steps.version.outputs.version }}
-          releases/gommitizen_${{ steps.version.outputs.version }}.sha256
+          releases/gommitizen
+          releases/gommitizen.sha256
 
