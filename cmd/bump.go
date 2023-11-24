@@ -2,31 +2,40 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"gommitizen/version"
 	"os"
 	"path/filepath"
+
+	"github.com/spf13/cobra"
 )
+
+var projectDir string
+var changelog bool
+var incrementType string
 
 // bumpCmd represents the bump command
 var bumpCmd = &cobra.Command{
 	Use:   "bump",
 	Short: "Genera el tag de versión",
-	Args:  cobra.MaximumNArgs(1),
+	//Args:  cobra.MaximumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(args)
-		if len(args) == 0 {
+		if projectDir == "" {
+			fmt.Printf("\n* Ejecutando bump en todos los proyectos\n")
 			bumpVersion()
 			return
-		}
-
-		if len(args) == 2 {
-			bumpProjectVersion(args[1])
+		} else {
+			fmt.Printf("\n* Ejecutando bump en el proyecto %s\n", projectDir)
+			bumpProjectVersion(projectDir)
+			return
 		}
 	},
 }
 
 func init() {
+	bumpCmd.Flags().StringVarP(&projectDir, "directory", "d", "", "Select a project directory to bump")
+	bumpCmd.Flags().BoolVarP(&changelog, "changelog", "c", false, "Create CHANGELOG.md")
+	bumpCmd.Flags().StringVar(&incrementType, "increment", "", "Version increment type (MINOR, MAJOR, PATCH)")
+
 	rootCmd.AddCommand(bumpCmd)
 }
 
@@ -38,6 +47,10 @@ func bumpProjectVersion(project string) {
 	}
 
 	filePath := filepath.Join(rootDir, project, ".version.json")
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		fmt.Printf("No se encontró el archivo %s\n", filePath)
+		os.Exit(1)
+	}
 
 	if bumpRun(rootDir, filePath) != nil {
 		fmt.Println("Error al ejecutar bump:", err)
@@ -58,6 +71,11 @@ func bumpVersion() {
 	fileList, err := version.FindFCVersionFiles(rootDir)
 	if err != nil {
 		fmt.Println("Error al encontrar archivos .version.json:", err)
+		os.Exit(1)
+	}
+
+	if len(fileList) == 0 {
+		fmt.Println("No se encontraron archivos .version.json")
 		os.Exit(1)
 	}
 
