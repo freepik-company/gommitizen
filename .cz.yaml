@@ -2,7 +2,7 @@
 commitizen:
   major_version_zero: true
   name: cz_conventional_commits
-  tag_format: 0.1.0
+  tag_format: $version
   update_changelog_on_bump: true
-  version: 0.0.3
+  version: 0.1.1
   version_type: semver
