@@ -16,15 +16,14 @@ var incrementType string
 // bumpCmd represents the bump command
 var bumpCmd = &cobra.Command{
 	Use:   "bump",
-	Short: "Genera el tag de versión",
-	//Args:  cobra.MaximumNArgs(2),
+	Short: "Make a version bump",
 	Run: func(cmd *cobra.Command, args []string) {
 		if projectDir == "" {
-			fmt.Printf("\n* Ejecutando bump en todos los proyectos\n")
+			fmt.Printf("\n* Run bump in all projects\n")
 			bumpVersion()
 			return
 		} else {
-			fmt.Printf("\n* Ejecutando bump en el proyecto %s\n", projectDir)
+			fmt.Printf("\n* Running bump in project %s\n", projectDir)
 			bumpProjectVersion(projectDir)
 			return
 		}
@@ -42,91 +41,93 @@ func init() {
 func bumpProjectVersion(project string) {
 	rootDir, err := os.Getwd()
 	if err != nil {
-		fmt.Println("Error al obtener el directorio actual:", err)
+		fmt.Println("Error obtaining current directory:", err)
 		os.Exit(1)
 	}
 
 	filePath := filepath.Join(rootDir, project, ".version.json")
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		fmt.Printf("No se encontró el archivo %s\n", filePath)
+		fmt.Printf("The file %s does not exist\n", filePath)
 		os.Exit(1)
 	}
 
 	if bumpRun(rootDir, filePath) != nil {
-		fmt.Println("Error al ejecutar bump:", err)
+		fmt.Println("Error running bump:", err)
 		os.Exit(1)
 	}
 }
 
-// Ejecuta el comando bump para todos los archivos .version.json en el directorio actual y sus subdirectorios
+// Run the bump command for all .version.json files in the current directory and its subdirectories
 func bumpVersion() {
-	// Obtén el directorio actual
+	// Get the current directory
 	rootDir, err := os.Getwd()
 	if err != nil {
-		fmt.Println("Error al obtener el directorio actual:", err)
+		fmt.Println("Error obtaining current directory:", err)
 		os.Exit(1)
 	}
 
-	// Encuentra todos los archivos .version.json en el directorio actual y sus subdirectorios
+	// Find all .version.json files in the current directory and its subdirectories
 	fileList, err := version.FindFCVersionFiles(rootDir)
 	if err != nil {
-		fmt.Println("Error al encontrar archivos .version.json:", err)
+		fmt.Println("Error finding .version.json files:", err)
 		os.Exit(1)
 	}
 
 	if len(fileList) == 0 {
-		fmt.Println("No se encontraron archivos .version.json")
+		fmt.Println("Files .version.json not found")
 		os.Exit(1)
 	}
 
-	// Itera sobre los archivos encontrados
+	// Loop over the found files
 	for _, filePath := range fileList {
 		err := bumpRun(rootDir, filePath)
 		if err != nil {
-			fmt.Println("Error al ejecutar bump:", err)
+			fmt.Println("Error running bump:", err)
 			continue
 		}
 	}
 }
 
-// Ejecuta el comando bump para un archivo .version.json
+// Run the bump command for a .version.json file
 func bumpRun(rootDir string, filePath string) error {
-	// Obtiene la ruta relativa al directorio actual
+	// Get the relative path to the current directory
 	relativePath, err := filepath.Rel(rootDir, filePath)
 	if err != nil {
-		return fmt.Errorf("Error al obtener la ruta relativa: %s", err)
+		return fmt.Errorf("Error obtaining relative path: %s", err)
 	}
 
-	// Imprime el mensaje de inicio
-	fmt.Printf("\n* Ejecutando bump en proyecto %s\n\n", filepath.Dir(relativePath))
+	// Print the start message
+	fmt.Printf("\n* Running bump in project %s\n", filepath.Dir(relativePath))
 
 	config := version.VersionData{}
 
+	// Read the version data
 	errData := config.ReadData(filePath)
 	if errData != nil {
-		return fmt.Errorf("Error al leer los datos de la versión: %s", errData)
+		return fmt.Errorf("Error reading version data: %s", errData)
 	}
 
+	// Check if files have been modified in Git
 	modified, err := config.IsSomeFileModified()
 	if err != nil {
-		return fmt.Errorf("Error al verificar si algún archivo ha sido modificado en Git: %s", err)
+		return fmt.Errorf("Error checking if some file has been modified in Git: %s", err)
 	}
 
-	// Si el archivo ha sido modificado, actualiza la versión
+	// If the file has been modified, update the version
 	if modified {
 		currentVersion := config.GetVersion()
 		newVersion, err := config.UpdateVersion()
 		if err != nil {
-			return fmt.Errorf("Error al actualizar la versión: %s", err)
+			return fmt.Errorf("Error updating version: %s", err)
 		}
 
 		if newVersion == currentVersion {
-			fmt.Printf("No hay actualización de config en %s\n", relativePath)
+			fmt.Printf("There is no update of config in %s\n", relativePath)
 		} else {
-			fmt.Printf("Versión actualizada en %s\n", relativePath)
+			fmt.Printf("Updated version in %s\n", relativePath)
 		}
 	} else {
-		fmt.Printf("No se realizaron cambios en %s\n", relativePath)
+		fmt.Printf("Bump skipped in %s\n", relativePath)
 	}
 	fmt.Printf("\n")
 
