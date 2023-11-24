@@ -24,8 +24,8 @@ func (e *VersionError) Error() string {
 
 // Gestiona la información de la versión para nuestro proyecto
 type VersionData struct {
-	Version string `json:"version"`
-	Commit string `json:"commit"`
+	Version  string `json:"version"`
+	Commit   string `json:"commit"`
 	filePath string
 }
 
@@ -113,7 +113,7 @@ func (version *VersionData) IsSomeFileModified() (bool, error) {
 
 	// Obtiene la lista de archivos modificados en Git desde un commit dado en un directorio dado
 	git := git.Git{
-		DirPath: dirPath,
+		DirPath:    dirPath,
 		FromCommit: version.Commit,
 	}
 	errUpdate := git.UpdateData()
@@ -127,7 +127,6 @@ func (version *VersionData) IsSomeFileModified() (bool, error) {
 	// Verifica si la lista de archivos modificados está vacía
 	return len(changedFiles) > 0, nil
 }
-
 
 // Actualiza el valor de la versión en el archivo .version.json en función de los cambios en Git
 func (version *VersionData) UpdateVersion() (string, error) {
@@ -158,7 +157,7 @@ func (version *VersionData) UpdateVersion() (string, error) {
 
 	// Crea una instancia de Git
 	git := git.Git{
-		DirPath: dirPath,
+		DirPath:    dirPath,
 		FromCommit: version.Commit,
 	}
 
@@ -182,7 +181,7 @@ func (version *VersionData) UpdateVersion() (string, error) {
 	if incType != "none" {
 		// Informamos del incremento de versión, actualizamos el valor de la versión y el commit y actualizamos Git
 		fmt.Println("Incrementando la versión de " + currentVersion + " a " + newVersion)
-	  version.Commit = git.LastCommit
+		version.Commit = git.LastCommit
 		version.Version = newVersion
 
 		// Serializa la estructura actualizada de nuevo en JSON
@@ -271,27 +270,39 @@ func getBaseDirFromFilePath(filePath string) string {
 
 // Determina el tipo de incremento de versión en función de los mensajes de confirmación
 func determineVersionBump(commitMessages []string) string {
+	major := false
+	minor := false
+	patch := false
+
 	for _, message := range commitMessages {
 		// Un mensaje contiene al inicio de la cadena dada el siguiente prefijo "feat:", "fix:" o "BREAKING CHANGE:"
 		if strings.Contains(message, "BREAKING CHANGE:") {
-			return "major"
+			major = true
 		} else if strings.Contains(message, "feat:") {
-			return "minor"
+			minor = true
 		} else if strings.Contains(message, "fix:") {
-			return "patch"
+			patch = true
 		}
+	}
+
+	if major {
+		return "major"
+	} else if minor {
+		return "minor"
+	} else if patch {
+		return "patch"
 	}
 
 	return "none"
 }
 
-// Incrementa la versión actual en función del tipo de incremento dado y devuelve la nueva versión 
-func incrementVersion(version string, incType string) (string, string , error) {
+// Incrementa la versión actual en función del tipo de incremento dado y devuelve la nueva versión
+func incrementVersion(version string, incType string) (string, string, error) {
 	currentVersion, err := semver.NewVersion(version)
 	if err != nil {
 		return "", "", err
 	}
-	
+
 	var newVersion semver.Version
 	if incType == "major" {
 		newVersion = currentVersion.IncMajor() // Incrementa el mayor (por ejemplo, de 1.2.3 a 2.0.0)
