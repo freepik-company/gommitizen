@@ -320,15 +320,27 @@ func getBaseDirFromFilePath(filePath string) string {
 
 // Determina el tipo de incremento de versión en función de los mensajes de confirmación
 func determineVersionBump(commitMessages []string) string {
+	major := false
+	minor := false
+	patch := false
+
 	for _, message := range commitMessages {
 		// Un mensaje contiene al inicio de la cadena dada el siguiente prefijo "feat:", "fix:" o "BREAKING CHANGE:"
 		if strings.Contains(message, "BREAKING CHANGE:") {
-			return "major"
+			major = true
 		} else if strings.Contains(message, "feat:") {
-			return "minor"
+			minor = true
 		} else if strings.Contains(message, "fix:") {
-			return "patch"
+			patch = true
 		}
+	}
+
+	if major {
+		return "major"
+	} else if minor {
+		return "minor"
+	} else if patch {
+		return "patch"
 	}
 
 	return "none"
