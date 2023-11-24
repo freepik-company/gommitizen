@@ -94,8 +94,7 @@ func bumpRun(rootDir string, filePath string) error {
 	// Obtiene la ruta relativa al directorio actual
 	relativePath, err := filepath.Rel(rootDir, filePath)
 	if err != nil {
-		fmt.Println("Error al obtener la ruta relativa:", err)
-		return err
+		return fmt.Errorf("Error al obtener la ruta relativa: %s", err)
 	}
 
 	// Imprime el mensaje de inicio
@@ -105,14 +104,12 @@ func bumpRun(rootDir string, filePath string) error {
 
 	errData := config.ReadData(filePath)
 	if errData != nil {
-		fmt.Println("Error al leer los datos de la versión:", errData)
-		return errData
+		return fmt.Errorf("Error al leer los datos de la versión: %s", errData)
 	}
 
 	modified, err := config.IsSomeFileModified()
 	if err != nil {
-		fmt.Println("Error al verificar si algún archivo ha sido modificado en Git:", err)
-		return err
+		return fmt.Errorf("Error al verificar si algún archivo ha sido modificado en Git: %s", err)
 	}
 
 	// Si el archivo ha sido modificado, actualiza la versión
@@ -120,8 +117,7 @@ func bumpRun(rootDir string, filePath string) error {
 		currentVersion := config.GetVersion()
 		newVersion, err := config.UpdateVersion()
 		if err != nil {
-			fmt.Println("Error al actualizar la versión:", err)
-			return err
+			return fmt.Errorf("Error al actualizar la versión: %s", err)
 		}
 
 		if newVersion == currentVersion {
