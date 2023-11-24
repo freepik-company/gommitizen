@@ -14,6 +14,7 @@ import (
 )
 
 // Tipo de error personalizado
+
 type VersionError struct {
 	Message string
 }
@@ -23,13 +24,19 @@ func (e *VersionError) Error() string {
 }
 
 // Gestiona la información de la versión para nuestro proyecto
+
 type VersionData struct {
 	Version  string `json:"version"`
 	Commit   string `json:"commit"`
 	filePath string
 }
 
+func NewVersionData(version string, commit string, filePath string) *VersionData {
+	return &VersionData{Version: version, Commit: commit, filePath: filePath}
+}
+
 // Métodos getter
+
 func (version *VersionData) GetVersion() string {
 	return version.Version
 }
@@ -44,7 +51,50 @@ func (version *VersionData) GetFilePath() string {
 
 // Funciones públicas
 
-// Busca archivos .version.json en un directorio dado y sus subdirectorios
+func (version *VersionData) Initialize(path string) error {
+	// check .version.json does not exist
+	configFile := path + "/.version.json"
+	if _, err := os.Stat(configFile); err == nil {
+		fmt.Println("El repositorio ya está inicializado")
+		os.Exit(1)
+	}
+
+	version.Commit = "HEAD^"
+	version.Version = "0.0.0"
+	version.filePath = configFile
+
+	err := version.Save()
+	if err != nil {
+		fmt.Println("Error al guardar el archivo .version.json:", err)
+		return err
+	}
+
+	return nil
+}
+
+func (version *VersionData) Save() error {
+	jsonData, err := version.String()
+
+	err = os.WriteFile(version.filePath, []byte(jsonData), 0644)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (version *VersionData) String() (string, error) {
+	jsonData, err := json.MarshalIndent(version, "", "  ")
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonData), nil
+}
+
+// FindFCVersionFiles Busca archivos .version.json en un directorio dado y sus subdirectorios
 func FindFCVersionFiles(rootDir string) ([]string, error) {
 	var fileList []string
 
@@ -65,7 +115,7 @@ func FindFCVersionFiles(rootDir string) ([]string, error) {
 
 // Métodos públicos
 
-// Obtene los valores de la versión y el commit del archivo .version.json
+// ReadData Obtene los valores de la versión y el commit del archivo .version.json
 func (version *VersionData) ReadData(filePath string) error {
 	version.filePath = filePath
 
@@ -84,7 +134,7 @@ func (version *VersionData) ReadData(filePath string) error {
 	return nil
 }
 
-// Devuelve si algún archivo ha sido modificado en Git desde un commit dado en un directorio dado
+// IsSomeFileModified Devuelve si algún archivo ha sido modificado en Git desde un commit dado en un directorio dado
 func (version *VersionData) IsSomeFileModified() (bool, error) {
 	if version.Commit == "" || version.filePath == "" {
 		return false, &VersionError{
@@ -119,7 +169,7 @@ func (version *VersionData) IsSomeFileModified() (bool, error) {
 	errUpdate := git.UpdateData()
 	if errUpdate != nil {
 		return false, &VersionError{
-			Message: "Error al actualizar los datos de Git",
+			Message: "Error al actualizar los datos de Git: " + errUpdate.Error(),
 		}
 	}
 	changedFiles := git.GetChangedFiles()
@@ -128,7 +178,7 @@ func (version *VersionData) IsSomeFileModified() (bool, error) {
 	return len(changedFiles) > 0, nil
 }
 
-// Actualiza el valor de la versión en el archivo .version.json en función de los cambios en Git
+// UpdateVersion Actualiza el valor de la versión en el archivo .version.json en función de los cambios en Git
 func (version *VersionData) UpdateVersion() (string, error) {
 	if version.Version == "" || version.Commit == "" {
 		return "", &VersionError{
