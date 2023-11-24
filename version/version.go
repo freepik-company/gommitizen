@@ -3,7 +3,6 @@ package version
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,7 +12,9 @@ import (
 	"gommitizen/git"
 )
 
-// Tipo de error personalizado
+// Personalized error type
+
+const versionFile = ".version.json"
 
 type VersionError struct {
 	Message string
@@ -23,7 +24,7 @@ func (e *VersionError) Error() string {
 	return e.Message
 }
 
-// Gestiona la información de la versión para nuestro proyecto
+// Manage the version information for our project
 
 type VersionData struct {
 	Version  string `json:"version"`
@@ -35,7 +36,7 @@ func NewVersionData(version string, commit string, filePath string) *VersionData
 	return &VersionData{Version: version, Commit: commit, filePath: filePath}
 }
 
-// Métodos getter
+// Getters
 
 func (version *VersionData) GetVersion() string {
 	return version.Version
@@ -49,13 +50,13 @@ func (version *VersionData) GetFilePath() string {
 	return version.filePath
 }
 
-// Funciones públicas
+// Public functions
 
 func (version *VersionData) Initialize(path string) error {
 	// check .version.json does not exist
 	configFile := path + "/.version.json"
 	if _, err := os.Stat(configFile); err == nil {
-		fmt.Println("El repositorio ya está inicializado")
+		fmt.Println("The repository is already initialized")
 		os.Exit(1)
 	}
 
@@ -65,13 +66,14 @@ func (version *VersionData) Initialize(path string) error {
 
 	err := version.Save()
 	if err != nil {
-		fmt.Println("Error al guardar el archivo .version.json:", err)
+		fmt.Println("Error saving .version.json file:", err)
 		return err
 	}
 
 	return nil
 }
 
+// Save the version and commit values in the .version.json file
 func (version *VersionData) Save() error {
 	jsonData, err := version.String()
 
@@ -84,6 +86,7 @@ func (version *VersionData) Save() error {
 	return nil
 }
 
+// String returns the JSON representation of the VersionData struct
 func (version *VersionData) String() (string, error) {
 	jsonData, err := json.MarshalIndent(version, "", "  ")
 
@@ -94,7 +97,7 @@ func (version *VersionData) String() (string, error) {
 	return string(jsonData), nil
 }
 
-// FindFCVersionFiles Busca archivos .version.json en un directorio dado y sus subdirectorios
+// Find all .version.json files in a given directory and its subdirectories
 func FindFCVersionFiles(rootDir string) ([]string, error) {
 	var fileList []string
 
@@ -103,7 +106,7 @@ func FindFCVersionFiles(rootDir string) ([]string, error) {
 			return err
 		}
 
-		if strings.HasSuffix(info.Name(), ".version.json") {
+		if strings.HasSuffix(info.Name(), versionFile) {
 			fileList = append(fileList, path)
 		}
 
@@ -113,9 +116,9 @@ func FindFCVersionFiles(rootDir string) ([]string, error) {
 	return fileList, err
 }
 
-// Métodos públicos
+// Public methods
 
-// ReadData Obtene los valores de la versión y el commit del archivo .version.json
+// Get the version and commit values from the .version.json file
 func (version *VersionData) ReadData(filePath string) error {
 	version.filePath = filePath
 
@@ -134,34 +137,34 @@ func (version *VersionData) ReadData(filePath string) error {
 	return nil
 }
 
-// IsSomeFileModified Devuelve si algún archivo ha sido modificado en Git desde un commit dado en un directorio dado
+// Returns true if some file has been modified in Git from a given commit in a given directory
 func (version *VersionData) IsSomeFileModified() (bool, error) {
 	if version.Commit == "" || version.filePath == "" {
 		return false, &VersionError{
-			Message: "No se ha especificado un commit o un archivo .version.json",
+			Message: "A commit or a .version.json file has not been specified",
 		}
 	}
 
-	// Obtén el directorio actual
+	// Get the current directory
 	currentDir, err := os.Getwd()
 	if err != nil {
 		return false, &VersionError{
-			Message: "Error al obtener el directorio actual",
+			Message: "Error obtaining current directory",
 		}
 	}
 
-	// Obtiene la ruta relativa al directorio actual
+	// Get the relative path to the current directory
 	relativePath, err := filepath.Rel(currentDir, version.filePath)
 	if err != nil {
 		return false, &VersionError{
-			Message: "Error al obtener la ruta relativa",
+			Message: "Error obtaining relative path",
 		}
 	}
 
-	// Obtiene la ruta base del archivo
+	// Get the base path of the file
 	dirPath := filepath.Dir(relativePath)
 
-	// Obtiene la lista de archivos modificados en Git desde un commit dado en un directorio dado
+	// Get the list of modified files in Git from a given commit in a given directory
 	git := git.Git{
 		DirPath:    dirPath,
 		FromCommit: version.Commit,
@@ -169,168 +172,219 @@ func (version *VersionData) IsSomeFileModified() (bool, error) {
 	errUpdate := git.UpdateData()
 	if errUpdate != nil {
 		return false, &VersionError{
-			Message: "Error al actualizar los datos de Git: " + errUpdate.Error(),
+			Message: "Error updating Git data: " + errUpdate.Error(),
 		}
 	}
 	changedFiles := git.GetChangedFiles()
 
-	// Verifica si la lista de archivos modificados está vacía
+	// Verify if the list of modified files is empty
 	return len(changedFiles) > 0, nil
 }
 
-// UpdateVersion Actualiza el valor de la versión en el archivo .version.json en función de los cambios en Git
+// Update the version value in the .version.json file based on the changes in Git
 func (version *VersionData) UpdateVersion() (string, error) {
 	if version.Version == "" || version.Commit == "" {
 		return "", &VersionError{
-			Message: "Error: no se han especificado los valores de la versión y el commit",
+			Message: "Error: a commit and version values have not been specified",
 		}
 	}
 
-	// Obtén el directorio actual
+	// Get the current directory
 	currentDir, err := os.Getwd()
 	if err != nil {
 		return "", &VersionError{
-			Message: "Error al obtener el directorio actual",
+			Message: "Error obtaining current directory",
 		}
 	}
 
-	// Obtiene la ruta relativa al directorio actual
+	// Get the relative path to the current directory
 	relativePath, err := filepath.Rel(currentDir, version.filePath)
 	if err != nil {
 		return "", &VersionError{
-			Message: "Error al obtener la ruta relativa",
+			Message: "Error obtaining relative path",
 		}
 	}
 
-	// Obtiene la ruta base del archivo
+	// Get the base path of the file
 	dirPath := filepath.Dir(relativePath)
 
-	// Crea una instancia de Git
+	// Make a Git instance
 	git := git.Git{
 		DirPath:    dirPath,
 		FromCommit: version.Commit,
 	}
 
-	// Actualiza los datos de Git
+	// Update the data of Git
 	errUpdate := git.UpdateData()
 	if errUpdate != nil {
-		fmt.Println("Error al actualizar los datos de Git:", errUpdate)
-		return "", errUpdate
+		return "", &VersionError{
+			Message: "Error updating Git data: " + errUpdate.Error(),
+		}
 	}
 
-	// Determina el tipo de incremento de versión en función de los mensajes de confirmación
+	// Obtains the type of version increment based on the commit messages
 	incType := determineVersionBump(git.CommitMessages)
 
-	// Incrementa la versión actual
+	// Increment the current version
 	currentVersion, newVersion, err := incrementVersion(version.Version, incType)
 	if err != nil {
-		fmt.Println("Error al incrementar la versión actual:", err)
-		return "", err
+		return "", &VersionError{
+			Message: "Error incrementing the current version: " + err.Error(),
+		}
 	}
 
 	if incType != "none" {
-		// Informamos del incremento de versión, actualizamos el valor de la versión y el commit y actualizamos Git
-		fmt.Println("Incrementando la versión de " + currentVersion + " a " + newVersion)
+		// Print the list of commit messages
+		fmt.Println("Commit messages: ")
+		for _, msg := range git.GetCommitMessages() {
+			if strings.HasPrefix(msg, "Updated version") {
+				continue
+			}
+			fmt.Println("+", msg)
+		}
+		fmt.Println()
+
+		// Print the list of files changed in Git
+		fmt.Println("Files changed: ")
+		for _, file := range git.GetChangedFiles() {
+			if strings.HasSuffix(file, versionFile) {
+				continue
+			}
+			fmt.Println("+", file)
+		}
+		fmt.Println()
+
+		// Report the version bump, update the version and commit values and update Git
+		fmt.Println("Version bumped from " + currentVersion + " to " + newVersion)
 		version.Commit = git.LastCommit
 		version.Version = newVersion
 
-		// Serializa la estructura actualizada de nuevo en JSON
+		// Serializes the updated structure back to JSON
 		updatedContent, err := json.MarshalIndent(version, "", "  ")
 		if err != nil {
-			fmt.Println("Error al serializar la estructura actualizada:", err)
-			return "", err
+			return "", &VersionError{
+				Message: "Error serializing the updated structure: " + err.Error(),
+			}
 		}
 
-		// Escribe el contenido actualizado en el archivo
-		err = ioutil.WriteFile(version.filePath, updatedContent, os.ModePerm)
+		// Write the updated content to the file
+		err = os.WriteFile(version.filePath, updatedContent, os.ModePerm)
 		if err != nil {
-			fmt.Println("Error al escribir el contenido actualizado en el archivo:", err)
-			return "", err
+			return "", &VersionError{
+				Message: "Error writing the updated content to the file: " + err.Error(),
+			}
+
 		}
 
 		addFiles := []string{relativePath}
-		commitMessage := "Versión actualizada (" + version.Version + ") en " + getBaseDirFromFilePath(git.DirPath)
+		commitMessage := "Updated version (" + version.Version + ") in " + getBaseDirFromFilePath(git.DirPath)
 		tagMessage := version.Version + "_" + getBaseDirFromFilePath(git.DirPath)
 		output, err := git.UpdateGit(addFiles, commitMessage, tagMessage)
 		if err != nil {
-			fmt.Println("Error al actualizar Git:", err)
-			return "", err
+			return "", &VersionError{
+				Message: "Error updating Git: " + err.Error(),
+			}
+
 		}
 
+		// Print the output of the git command
+		lastLine := output[len(output)-1]
+		if strings.TrimSpace(lastLine) == "" {
+			output = output[:len(output)-1]
+		}
 		for _, file := range output {
 			fmt.Println(file)
 		}
 
 	} else {
-		fmt.Println("No se incrementa la versión: " + currentVersion)
+		fmt.Printf("Current version: %s (Bump skipped!)\n", currentVersion)
 		version.Version = currentVersion
 	}
 
 	return version.Version, nil
 }
 
-// Métodos privados
+// Private methods
 
-// Obtiene el commit almacenado en el archivo .version.json
+// Get the commit stored in the .version.json file
 func (version *VersionData) getCommitValueFromJsonFile() (string, error) {
-	// Lee el contenido del archivo .version.json
-	content, err := ioutil.ReadFile(version.filePath)
+	// Read the content of the .version.json file
+	content, err := os.ReadFile(version.filePath)
 	if err != nil {
-		fmt.Println("Error al leer el contenido del archivo:", err)
-		return "", err
+		return "", &VersionError{
+			Message: "Error reading file content: " + err.Error(),
+		}
 	}
 
-	// Deserializa el contenido en una estructura Version
+	// Deserializes the content into a Version structure
 	err = json.Unmarshal(content, version)
 	if err != nil {
-		fmt.Println("Error al deserializar el contenido del archivo:", err)
-		return "", err
+		return "", &VersionError{
+			Message: "Error deserialize file content: " + err.Error(),
+		}
 	}
 
-	// Devuelve el valor del commit
+	// Returns the commit value
 	return version.Commit, nil
 }
 
-// Obtiene el valir de commit almacenado en el archivo .version.json
+// Get the commit stored in the .version.json file
 func (version *VersionData) getCurrentVersionFromJsonFile() (string, error) {
-	// Lee el contenido del archivo .version.json
-	content, err := ioutil.ReadFile(version.filePath)
+	// Read the content of the .version.json file
+	content, err := os.ReadFile(version.filePath)
 	if err != nil {
-		fmt.Println("Error al leer el contenido del archivo:", err)
-		return "", err
+		return "", &VersionError{
+			Message: "Error reading file content: " + err.Error(),
+		}
 	}
 
-	// Deserializa el contenido en una estructura Version
+	// Desializes the content into a Version structure
 	err = json.Unmarshal(content, version)
 	if err != nil {
-		fmt.Println("Error al deserializar el contenido del archivo:", err)
-		return "", err
+		return "", &VersionError{
+			Message: "Error deserialize file content: " + err.Error(),
+		}
+
 	}
 
-	// Devuelve el valor de la versión
+	// Returns the version value
 	return version.Version, nil
 }
 
-// Funciones auxiliares privadas
+// Private auxiliary functions
 
-// Obtiene el directorio base de un archivo dado
+// Get the base directory of a given file
 func getBaseDirFromFilePath(filePath string) string {
 	return filepath.Base(filePath)
 }
 
-// Determina el tipo de incremento de versión en función de los mensajes de confirmación
+// Determine the type of version increment based on the commit messages
 func determineVersionBump(commitMessages []string) string {
 	major := false
 	minor := false
 	patch := false
 
 	for _, message := range commitMessages {
-		// Un mensaje contiene al inicio de la cadena dada el siguiente prefijo "feat:", "fix:" o "BREAKING CHANGE:"
-		if strings.Contains(message, "BREAKING CHANGE:") {
+		// A message contains at the beginning of the given string the following prefix "feat:", "fix:" or "BREAKING CHANGE:"
+		if strings.HasPrefix(message, "BREAKING CHANGE:") ||
+			strings.HasPrefix(message, "breaking change:") ||
+			strings.HasPrefix(message, "Breaking change:") ||
+			strings.HasPrefix(message, "bc:") ||
+			strings.HasPrefix(message, "BC:") ||
+			strings.HasPrefix(message, "Bc:") {
 			major = true
-		} else if strings.Contains(message, "feat:") {
+		} else if strings.HasPrefix(message, "feat:") ||
+			strings.HasPrefix(message, "Feat:") ||
+			strings.HasPrefix(message, "feature:") ||
+			strings.HasPrefix(message, "Feature:") ||
+			strings.HasPrefix(message, "FEAT") {
 			minor = true
-		} else if strings.Contains(message, "fix:") {
+		} else if strings.HasPrefix(message, "fix:") ||
+			strings.HasPrefix(message, "Fix:") ||
+			strings.HasPrefix(message, "FIX") ||
+			strings.HasPrefix(message, "bug:") ||
+			strings.HasPrefix(message, "Bug:") ||
+			strings.HasPrefix(message, "BUG") {
 			patch = true
 		}
 	}
@@ -346,7 +400,7 @@ func determineVersionBump(commitMessages []string) string {
 	return "none"
 }
 
-// Incrementa la versión actual en función del tipo de incremento dado y devuelve la nueva versión
+// Increment the current version based on the given increment type and returns the new version
 func incrementVersion(version string, incType string) (string, string, error) {
 	currentVersion, err := semver.NewVersion(version)
 	if err != nil {
@@ -355,11 +409,11 @@ func incrementVersion(version string, incType string) (string, string, error) {
 
 	var newVersion semver.Version
 	if incType == "major" {
-		newVersion = currentVersion.IncMajor() // Incrementa el mayor (por ejemplo, de 1.2.3 a 2.0.0)
+		newVersion = currentVersion.IncMajor() // Increment the major (for example, from 1.2.3 to 2.0.0)
 	} else if incType == "minor" {
-		newVersion = currentVersion.IncMinor() // Incrementa el menor (por ejemplo, de 1.2.3 a 1.3.0)
+		newVersion = currentVersion.IncMinor() // Increment the minor (for example, from 1.2.3 to 1.3.0)
 	} else if incType == "patch" {
-		newVersion = currentVersion.IncPatch() // Incrementa el parche (por ejemplo, de 1.2.3 a 1.2.4)
+		newVersion = currentVersion.IncPatch() // Increment the patch (for example, from 1.2.3 to 1.2.4)
 	} else {
 		newVersion = *currentVersion
 	}
