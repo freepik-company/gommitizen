@@ -1,10 +1,12 @@
 package version
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/Masterminds/semver"
@@ -35,8 +37,9 @@ func (e *VersionError) Error() string {
 // Manage the version information for our project
 
 type VersionData struct {
-	Version         string `json:"version"`
-	Commit          string `json:"commit"`
+	Version         string   `json:"version"`
+	Commit          string   `json:"commit"`
+	VersionFiles    []string `json:"version_files"`
 	filePath        string
 	git             *git.Git
 	updateChangelog bool
@@ -140,18 +143,13 @@ func (version *VersionData) String() (string, error) {
 func (version *VersionData) ReadData(filePath string) error {
 	version.filePath = filePath
 
-	ver, err := version.getCurrentVersionFromJsonFile()
+	// Read the data from the .version.json file
+	err := version.readDataFromJsonFile()
 	if err != nil {
-		return err
+		return fmt.Errorf("Error reading data from the .version.json file: %s", err)
 	}
-	version.Version = ver
 
-	commit, errCommit := version.getCommitValueFromJsonFile()
-	if errCommit != nil {
-		return errCommit
-	}
-	version.Commit = commit
-
+	// Get a Git object with updated data
 	version.git, err = version.returnGitObjectWithUpdatedData()
 	if err != nil {
 		return fmt.Errorf("Error al actualizar Git: %s", err)
@@ -211,7 +209,16 @@ func (version *VersionData) UpdateVersion() (string, error) {
 				strings.HasSuffix(file, "CHANGELOG.md") {
 				continue
 			}
-			fmt.Println("+", file)
+			print := true
+			for _, versionFile := range version.VersionFiles {
+				versionFileParts := strings.Split(versionFile, ":")
+				if strings.HasSuffix(file, versionFileParts[0]) {
+					print = false
+				}
+			}
+			if print == true {
+				fmt.Println("+", file)
+			}
 		}
 		fmt.Println()
 
@@ -246,7 +253,18 @@ func (version *VersionData) UpdateVersion() (string, error) {
 			}
 		}
 
-		// TODO: update the version in extra files (for example, Chart.yaml)
+		// Update every file that contains the version in VersionFiles with the new version
+		for _, file := range version.VersionFiles {
+			// Split file into file name and variable by colon
+			fileParts := strings.Split(file, ":")
+			file := fileParts[0]
+			substring := fileParts[1]
+			err = updateVersionOfFiles(filepath.Join(version.git.DirPath, file), substring, newVersion)
+			if err != nil {
+				fmt.Println("Error updating the version in the file", file, ":", err)
+				return "", err
+			}
+		}
 
 		err = version.commitFiles()
 		if err != nil {
@@ -310,11 +328,11 @@ func (version *VersionData) UpdateChangelog() error {
 // Private methods
 
 // Get the commit stored in the .version.json file
-func (version *VersionData) getCommitValueFromJsonFile() (string, error) {
+func (version *VersionData) readDataFromJsonFile() error {
 	// Read the content of the .version.json file
 	content, err := os.ReadFile(version.filePath)
 	if err != nil {
-		return "", &VersionError{
+		return &VersionError{
 			Message: "Error reading file content: " + err.Error(),
 		}
 	}
@@ -322,36 +340,13 @@ func (version *VersionData) getCommitValueFromJsonFile() (string, error) {
 	// Deserializes the content into a Version structure
 	err = json.Unmarshal(content, version)
 	if err != nil {
-		return "", &VersionError{
+		return &VersionError{
 			Message: "Error deserialize file content: " + err.Error(),
 		}
 	}
 
 	// Returns the commit value
-	return version.Commit, nil
-}
-
-// Get the commit stored in the .version.json file
-func (version *VersionData) getCurrentVersionFromJsonFile() (string, error) {
-	// Read the content of the .version.json file
-	content, err := os.ReadFile(version.filePath)
-	if err != nil {
-		return "", &VersionError{
-			Message: "Error reading file content: " + err.Error(),
-		}
-	}
-
-	// Desializes the content into a Version structure
-	err = json.Unmarshal(content, version)
-	if err != nil {
-		return "", &VersionError{
-			Message: "Error deserialize file content: " + err.Error(),
-		}
-
-	}
-
-	// Returns the version value
-	return version.Version, nil
+	return nil
 }
 
 // Check if the version file is initialized
@@ -413,16 +408,22 @@ func (version *VersionData) returnGitObjectWithUpdatedData() (*git.Git, error) {
 // commitFiles Commit the changes in Git
 func (version *VersionData) commitFiles() error {
 	// Get the relative path to the current directory
-	relativePath, err := getRelativePath(version.filePath)
+	relativeFilePath, err := getRelativePath(version.filePath)
 	if err != nil {
 		return fmt.Errorf("Error obtaining the relative path: %s", err)
 	}
 
 	// Pay attention to the CHANGELOG.md file and those that host extra versions such as Chart.yaml
 	addFiles := []string{}
-	addFiles = append(addFiles, relativePath)
+	addFiles = append(addFiles, relativeFilePath)
 	if version.updateChangelog == true {
 		addFiles = append(addFiles, filepath.Join(version.git.DirPath, "CHANGELOG.md"))
+	}
+	for _, file := range version.VersionFiles {
+		// Split file into file name and variable by colon
+		fileParts := strings.Split(file, ":")
+		file := filepath.Join(version.git.DirPath, fileParts[0])
+		addFiles = append(addFiles, file)
 	}
 	commitMessage := "Updated version (" + version.Version + ") in " + getBaseDirFromFilePath(version.git.DirPath)
 	tagMessage := version.Version + "_" + getBaseDirFromFilePath(version.git.DirPath)
@@ -432,8 +433,11 @@ func (version *VersionData) commitFiles() error {
 		return err
 	}
 
-	for _, file := range output {
-		fmt.Println(file)
+	fmt.Println("")
+	for _, line := range output {
+		if line != "" {
+			fmt.Println(line)
+		}
 	}
 
 	return nil
@@ -461,6 +465,46 @@ func FindFCVersionFiles(rootDir string) ([]string, error) {
 }
 
 // Private auxiliary functions
+
+// Update the version in the files that contain it
+func updateVersionOfFiles(filePath, substring, newVersion string) error {
+	file, err := os.OpenFile(filePath, os.O_RDWR, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	var lines []string
+
+	// Regular expression to find the version in the file
+	regularExpression := fmt.Sprintf(`(?i)\b%s\b\s*[:=]\s*([0-9]+\.[0-9]+\.[0-9]+)`, substring)
+	versionRegex := regexp.MustCompile(regularExpression)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		match := versionRegex.FindStringSubmatch(line)
+		if len(match) > 1 {
+			// The line contains the substring given by 'substring'
+			oldVersion := strings.TrimSpace(match[1])
+			// Replace the old version with the new version
+			newLine := strings.Replace(line, oldVersion, newVersion, 1)
+			lines = append(lines, newLine)
+		} else {
+			// The line does not contain the substring given by 'substring'
+			lines = append(lines, line)
+		}
+	}
+
+	// Write the updated lines back to the file
+	file.Truncate(0)
+	file.Seek(0, 0)
+	for _, line := range lines {
+		file.WriteString(line + "\n")
+	}
+
+	return nil
+}
 
 // Get the relative path to the current directory
 func getRelativePath(filePath string) (string, error) {
