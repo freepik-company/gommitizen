@@ -1,8 +1,8 @@
-- [ ] Añadir soporte para actualizar la versión de otros ficheros (en principio json, como por ejemplo Chart.yaml)
+- [X] Añadir soporte para actualizar la versión de otros ficheros (en principio json, como por ejemplo Chart.yaml)
 - [ ] Añadir soporte a bump para poder incrementar versión mayor, menor o parche a demanda sin tener en cuenta los commits
-- [ ] Añadir soporte para ChangeLog
+- [X] Añadir soporte para ChangeLog
 - [X] Añadir soporte para incrementar versión de un projecto en concreto
 - [X] Cambiar el ejemplo de uso y poner el nombre del programa en lugar de "go run main.go"
 - [X] Dividir la aplicación en varios ficheros en función de su funcionalidad y crear un Makefile para compilarla
 - [ ] Implementar spf13/cobra para mejorar la experiencia de usuario (https://github.com/spf13/cobra)
-- [ ] Traducción al inglés de comentarios, documentación y cadenas literales
+- [X] Traducción al inglés de comentarios, documentación y cadenas literales
