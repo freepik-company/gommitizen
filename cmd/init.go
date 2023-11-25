@@ -37,7 +37,7 @@ func initialize(path string) {
 		os.Exit(1)
 	}
 
-	config := version.VersionData{}
+	config := version.NewVersionData()
 	err := config.Initialize(path)
 	if err != nil {
 		fmt.Println("Error initializing repository:", err)
