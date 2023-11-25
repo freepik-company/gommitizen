@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// Gestiona los errores personalizados
+// Managa custom errors
 type GitError struct {
 	Message string
 }
@@ -15,7 +15,7 @@ func (e *GitError) Error() string {
 	return e.Message
 }
 
-// Controla la información de Git para nuestro proyecto
+// Manage Git information for our project
 type Git struct {
 	DirPath        string
 	FromCommit     string
@@ -25,7 +25,7 @@ type Git struct {
 	ExcludedFiles  []string
 }
 
-// funciones setter
+// Setters
 func (git *Git) SetDirPath(dirPath string) {
 	git.DirPath = dirPath
 }
@@ -51,7 +51,7 @@ func (git *Git) setLastCommit() error {
 	return nil
 }
 
-// Funciones getter
+// Getters
 func (git *Git) GetChangedFiles() []string {
 	return git.ChangedFiles
 }
@@ -72,20 +72,20 @@ func (git *Git) GetExcludedFiles() []string {
 	return git.ExcludedFiles
 }
 
-// Métodos públicos
+// Public methods
 
-// Obtiene la lista de archivos modificados en Git desde un commit dado en un directorio dado y los almacena en el atributo ChangedFiles
-// También recupera los mensajes de commit y los almacena en el atributo CommitMessages.
+// Get the list of modified files in Git from a given commit in a given directory and store them in the ChangedFiles attribute
+// Also retrieves the commit messages and stores them in the CommitMessages attribute.
 func (git *Git) UpdateData() error {
 	if git.DirPath == "" {
 		return &GitError{
-			Message: "Error: no se ha especificado el directorio de trabajo",
+			Message: "Error: the working directory has not been specified",
 		}
 	}
 
 	if git.FromCommit == "" {
 		return &GitError{
-			Message: "Error: no se ha especificado el valor del commit",
+			Message: "Error: the commit value has not been specified",
 		}
 	}
 
@@ -110,7 +110,7 @@ func (git *Git) UpdateData() error {
 	return nil
 }
 
-// Actualiza los datos de Git
+// Update the data of Git
 func (git *Git) UpdateGit(files []string, commitMessage string, tagMessage string) ([]string, error) {
 	output := []string{}
 
@@ -137,10 +137,10 @@ func (git *Git) UpdateGit(files []string, commitMessage string, tagMessage strin
 	return output, nil
 }
 
-// Métodos privados
+// Private methods
 
-// Obtiene la lista de archivos modificados en Git desde un commit dado en un directorio dado
-// Permite excluir archivos de la lista de archivos modificados
+// Get the list of modified files in Git from a given commit in a given directory
+// Allows you to exclude files from the list of modified files
 func (git *Git) getListOfModifiedFilesInGitFromAGivenCommitInDirExcludingFiles() ([]string, error) {
 	cmd := exec.Command("git", "diff", "--name-only", git.FromCommit, "HEAD", git.DirPath)
 	output, err := cmd.Output()
@@ -148,13 +148,13 @@ func (git *Git) getListOfModifiedFilesInGitFromAGivenCommitInDirExcludingFiles()
 		return nil, err
 	}
 
-	// Divide la salida en líneas
+	// Divides the output into lines
 	lines := strings.Split(string(output), "\n")
 
-	// Elimina la última línea vacía
+	// Remove the last line (empty)
 	lines = lines[:len(lines)-1]
 
-	// Elimina los archivos excluidos de la lista de archivos modificados
+	// Remvoe excluded files from the list of modified files
 	for _, excludeFile := range git.ExcludedFiles {
 		lines = removeStringFromSlice(lines, excludeFile)
 	}
@@ -162,10 +162,10 @@ func (git *Git) getListOfModifiedFilesInGitFromAGivenCommitInDirExcludingFiles()
 	return lines, nil
 }
 
-// Obtiene los mensajes de commit para los archivos modificados en Git desde un commit dado en un directorio dado
+// Get the commit messages for the modified files in Git from a given commit in a given directory
 func (git *Git) getCommitMessages() ([]string, error) {
-	// Construir el comando git log con opciones para obtener mensajes y archivos modificados
-	args := append([]string{"log", "--pretty=%s", "--name-only", git.FromCommit + "..", "--"}, git.ChangedFiles...)
+	// Build the git log command with options to get messages and modified files
+	args := append([]string{"log", "--pretty=%s", git.FromCommit + "..", "--"}, git.ChangedFiles...)
 	cmd := exec.Command("git", args...)
 
 	output, err := cmd.Output()
@@ -173,30 +173,25 @@ func (git *Git) getCommitMessages() ([]string, error) {
 		return nil, err
 	}
 
-	// Dividir la salida en líneas y eliminar líneas vacías
+	// Divide the output into lines and remove empty lines
 	lines := strings.Split(string(output), "\n")
 	var CommitMessages []string
 
-	// Iterar sobre las líneas para construir la lista de mensajes de commit
+	// Loop over the lines to build the list of commit messages
 	for i := 0; i < len(lines); i++ {
 		message := lines[i]
 		if strings.TrimSpace(message) != "" {
-			// Agregar el mensaje a la lista
+			// Add the message to the list
 			CommitMessages = append(CommitMessages, message)
-
-			// Avanzar al próximo mensaje
-			for i < len(lines) && strings.TrimSpace(lines[i]) != "" {
-				i++
-			}
 		}
 	}
 
 	return CommitMessages, nil
 }
 
-// Funciones privadas
+// Private functions
 
-// Añade un archivo al repositorio Git
+// Add a file to the Git repository
 func add(filePath string) (string, error) {
 	cmd := exec.Command("git", "add", filePath)
 	output, err := cmd.Output()
@@ -207,7 +202,7 @@ func add(filePath string) (string, error) {
 	return string(output), nil
 }
 
-// Crea un nuevo commit en Git
+// Make a new commit in Git
 func commit(message string) (string, error) {
 	cmd := exec.Command("git", "commit", "-m", message)
 	output, err := cmd.Output()
@@ -218,7 +213,7 @@ func commit(message string) (string, error) {
 	return string(output), nil
 }
 
-// Crea un nuevo tag en Git
+// Make a new tag in Git
 func tag(tag string) (string, error) {
 	cmd := exec.Command("git", "tag", tag)
 	output, err := cmd.Output()
@@ -229,7 +224,7 @@ func tag(tag string) (string, error) {
 	return string(output), nil
 }
 
-// Obtiene el commit actual en Git
+// Get the current commit in Git
 func getLastCommitFromGit() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "HEAD")
 	output, err := cmd.Output()
@@ -240,9 +235,9 @@ func getLastCommitFromGit() (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-// Funciones auxiliares
+// Auxiliar functions
 
-// Elimina una cadena de texto de un slice de cadenas
+// Remove a string from a slice of strings
 func removeStringFromSlice(slice []string, s string) []string {
 	var result []string
 
