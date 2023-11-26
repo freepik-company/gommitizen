@@ -1,5 +1,5 @@
 - [X] Add support for updating the version of other files (initially JSON, such as Chart.yaml).
-- [ ] Add support to bump to be able to increment major, minor, or patch version on demand without considering commits.
+- [X] Add support to bump to be able to increment major, minor, or patch version on demand without considering commits.
 - [X] Add support for ChangeLog.
 - [X] Add support to increment the version of a specific project.
 - [X] Update the usage example, replacing "go run main.go" with the program name.
