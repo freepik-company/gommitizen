@@ -227,21 +227,20 @@ func (version *VersionData) UpdateVersion() (string, error) {
 		version.Commit = version.git.LastCommit
 		version.Version = newVersion
 
-		// Serializes the updated structure back to JSON
-		updatedContent, err := json.MarshalIndent(version, "", "  ")
+		// Save the updated version and commit values in the .version.json file
+		err = version.saveVersion()
 		if err != nil {
 			return "", &VersionError{
-				Message: "Error serializing the updated structure: " + err.Error(),
+				Message: "Error saving the updated version and commit values in the .version.json file: " + err.Error(),
 			}
 		}
 
-		// Write the updated content to the file
-		err = os.WriteFile(version.filePath, updatedContent, os.ModePerm)
+		// Update file wich contains the version field we want to update
+		err = version.updateVersionFiles(newVersion)
 		if err != nil {
 			return "", &VersionError{
-				Message: "Error writing the updated content to the file: " + err.Error(),
+				Message: "Error updating the version in the files: " + err.Error(),
 			}
-
 		}
 
 		// Update the CHANGELOG.md file
@@ -253,19 +252,7 @@ func (version *VersionData) UpdateVersion() (string, error) {
 			}
 		}
 
-		// Update every file that contains the version in VersionFiles with the new version
-		for _, file := range version.VersionFiles {
-			// Split file into file name and variable by colon
-			fileParts := strings.Split(file, ":")
-			file := fileParts[0]
-			substring := fileParts[1]
-			err = updateVersionOfFiles(filepath.Join(version.git.DirPath, file), substring, newVersion)
-			if err != nil {
-				fmt.Println("Error updating the version in the file", file, ":", err)
-				return "", err
-			}
-		}
-
+		// Commit the changes in Git
 		err = version.commitFiles()
 		if err != nil {
 			fmt.Println("Error committing changes with Git:", err)
@@ -274,6 +261,57 @@ func (version *VersionData) UpdateVersion() (string, error) {
 	} else {
 		fmt.Printf("Current version: %s (Bump skipped!)\n", currentVersion)
 		version.Version = currentVersion
+	}
+
+	return version.Version, nil
+}
+
+// Increment the version value in the .version.json file based on the given increment type
+func (version *VersionData) IncrementVersion(incrementType string) (string, error) {
+	incType := strings.ToLower(incrementType)
+
+	if incType != "major" && incType != "minor" && incType != "patch" {
+		return "", &VersionError{
+			Message: "Error: the increment type must be 'major', 'minor' or 'patch'",
+		}
+	}
+
+	// Increment the current version
+	currentVersion, newVersion, err := incrementVersion(version.Version, incType)
+	if err != nil {
+		return "", &VersionError{
+			Message: "Error incrementing the current version: " + err.Error(),
+		}
+	}
+
+	// Report the version bump, update the version and commit values and update Git
+	fmt.Println("Version bumped from " + currentVersion + " to " + newVersion)
+
+	// Update the version value of the .version.json file
+	version.Version = newVersion
+	version.Commit = version.git.LastCommit
+
+	// Save the updated version value in the .version.json file
+	err = version.saveVersion()
+	if err != nil {
+		return "", &VersionError{
+			Message: "Error saving the updated version value in the .version.json file: " + err.Error(),
+		}
+	}
+
+	// Update file wich contains the version field we want to update
+	err = version.updateVersionFiles(newVersion)
+	if err != nil {
+		return "", &VersionError{
+			Message: "Error updating the version in the files: " + err.Error(),
+		}
+	}
+
+	// Commit the changes in Git
+	err = version.commitFiles()
+	if err != nil {
+		fmt.Println("Error committing changes with Git:", err)
+		return "", err
 	}
 
 	return version.Version, nil
@@ -326,6 +364,44 @@ func (version *VersionData) UpdateChangelog() error {
 }
 
 // Private methods
+
+// Update the version in the files that contain it given by the parameter VersionFiles
+func (version *VersionData) updateVersionFiles(v string) error {
+	// Update every file that contains the version in VersionFiles with the new version
+	for _, file := range version.VersionFiles {
+		// Split file into file name and variable by colon
+		fileParts := strings.Split(file, ":")
+		file := fileParts[0]
+		substring := fileParts[1]
+		err := updateVersionOfFiles(filepath.Join(version.git.DirPath, file), substring, v)
+		if err != nil {
+			return fmt.Errorf("Error updating the version in the file %s: %s", file, err)
+		}
+	}
+
+	return nil
+}
+
+// Save the version and commit values in the .version.json file
+func (version *VersionData) saveVersion() error {
+	// Serializes the updated structure back to JSON
+	updatedContent, err := json.MarshalIndent(version, "", "  ")
+	if err != nil {
+		return &VersionError{
+			Message: "Error serializing the updated structure: " + err.Error(),
+		}
+	}
+
+	// Write the updated content to the file
+	err = os.WriteFile(version.filePath, updatedContent, os.ModePerm)
+	if err != nil {
+		return &VersionError{
+			Message: "Error writing the updated content to the file: " + err.Error(),
+		}
+	}
+
+	return nil
+}
 
 // Get the commit stored in the .version.json file
 func (version *VersionData) readDataFromJsonFile() error {
