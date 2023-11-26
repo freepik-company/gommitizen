@@ -6,3 +6,4 @@
 - [X] Divide the application into several files based on functionality and create a Makefile for compilation.
 - [ ] Implement spf13/cobra to enhance the user experience (https://github.com/spf13/cobra).
 - [X] Translate comments, documentation, and string literals into English.
+- [ ] Add support for custom commit message in bump command (Even when a manual increment is performed?).
