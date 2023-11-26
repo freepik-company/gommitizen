@@ -23,7 +23,26 @@ install: build
 	@echo
 	@echo "Done!"
 
-clean:
+scan: start-sonar
+	@echo "Scanning..."
+	@curl -X POST -u admin:admin 'http://localhost:9000/api/users/create?login=user&password=password&name=user'
+	@sonar-scanner \
+		-Dsonar.projectKey=${BINARY_NAME} \
+		-Dsonar.sources=. \
+		-Dsonar.host.url=http://localhost:9000 \
+		-Dsonar.login=user \
+		-Dsonar.password=password
+	@golangci-lint run
+	@echo
+	@echo "Done!"
+
+start-sonar:
+	@docker-compose up -d --wait sonarqube
+
+stop-sonar:
+	@docker-compose down
+
+clean: stop-sonar
 	@echo "Cleaning..."
 	@rm -rf bin/*
 	@echo
