@@ -1,8 +1,9 @@
-- [ ] Añadir soporte para actualizar la versión de otros ficheros (en principio json, como por ejemplo Chart.yaml)
-- [ ] Añadir soporte a bump para poder incrementar versión mayor, menor o parche a demanda sin tener en cuenta los commits
-- [ ] Añadir soporte para ChangeLog
-- [X] Añadir soporte para incrementar versión de un projecto en concreto
-- [X] Cambiar el ejemplo de uso y poner el nombre del programa en lugar de "go run main.go"
-- [X] Dividir la aplicación en varios ficheros en función de su funcionalidad y crear un Makefile para compilarla
-- [ ] Implementar spf13/cobra para mejorar la experiencia de usuario (https://github.com/spf13/cobra)
-- [ ] Traducción al inglés de comentarios, documentación y cadenas literales
+- [X] Add support for updating the version of other files (initially JSON, such as Chart.yaml).
+- [X] Add support to bump to be able to increment major, minor, or patch version on demand without considering commits.
+- [X] Add support for ChangeLog.
+- [X] Add support to increment the version of a specific project.
+- [X] Update the usage example, replacing "go run main.go" with the program name.
+- [X] Divide the application into several files based on functionality and create a Makefile for compilation.
+- [ ] Implement spf13/cobra to enhance the user experience (https://github.com/spf13/cobra).
+- [X] Translate comments, documentation, and string literals into English.
+- [ ] Add support for custom commit message in bump command (Even when a manual increment is performed?).
