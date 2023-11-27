@@ -19,3 +19,6 @@
 
 # Binaries
 bin/
+
+# sonnarqube
+.scannerwork/
