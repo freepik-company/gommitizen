@@ -13,8 +13,10 @@ import (
 	"gommitizen/git"
 )
 
-// Tipo de error personalizado
+const ConfigFileName = ".version.json"
+const DefaultCommit = "HEAD^"
 
+// VersionError Tipo de error personalizado
 type VersionError struct {
 	Message string
 }
@@ -23,19 +25,51 @@ func (e *VersionError) Error() string {
 	return e.Message
 }
 
-// Gestiona la información de la versión para nuestro proyecto
-
+// VersionData Manage version data for all projects
 type VersionData struct {
 	Version  string `json:"version"`
 	Commit   string `json:"commit"`
+	Prefix   string `json:"prefix"`
 	filePath string
 }
 
-func NewVersionData(version string, commit string, filePath string) *VersionData {
-	return &VersionData{Version: version, Commit: commit, filePath: filePath}
+func NewVersionData(version string, commit string, filePath string, prefix string) *VersionData {
+	if prefix == "" {
+		prefix = filepath.Base(filepath.Dir(filePath))
+	}
+	return &VersionData{Version: version, Commit: commit, filePath: filePath, Prefix: prefix}
 }
 
-// Métodos getter
+func LoadVersionData(filePath string) *VersionData {
+	_, err := os.Stat(filePath)
+
+	if err != nil {
+		panic("[WARNING] Error when reading .version.json: " + err.Error())
+	}
+
+	content, err := os.ReadFile(filePath)
+
+	if err != nil {
+		panic("[WARNING] Error when reading .version.json: " + err.Error())
+	}
+
+	version := &VersionData{}
+	err = json.Unmarshal(content, version)
+
+	if err != nil {
+		panic("[WARNING] Error when reading .version.json: " + err.Error())
+	}
+
+	return version
+}
+
+func EmptyVersionData(filePath string) *VersionData {
+	newVersion := NewVersionData("", "", filePath, "")
+	newVersion.Save()
+	return newVersion
+}
+
+// Getters
 
 func (version *VersionData) GetVersion() string {
 	return version.Version
@@ -49,13 +83,17 @@ func (version *VersionData) GetFilePath() string {
 	return version.filePath
 }
 
+func (version *VersionData) GetPrefix() string {
+	return version.Prefix
+}
+
 // Funciones públicas
 
 func (version *VersionData) Initialize(path string) error {
 	// check .version.json does not exist
 	configFile := path + "/.version.json"
 	if _, err := os.Stat(configFile); err == nil {
-		fmt.Println("El repositorio ya está inicializado")
+		fmt.Println("Repository already initialized")
 		os.Exit(1)
 	}
 
@@ -65,7 +103,7 @@ func (version *VersionData) Initialize(path string) error {
 
 	err := version.Save()
 	if err != nil {
-		fmt.Println("Error al guardar el archivo .version.json:", err)
+		fmt.Println("Error saving .config.json:", err)
 		return err
 	}
 
