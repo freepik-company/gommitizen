@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"gommitizen/version"
-	"os"
-
 	"github.com/spf13/cobra"
+	"gommitizen/internal"
+	"gommitizen/version"
+	"strings"
 )
 
-var directory string
+var directory, prefix string
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
@@ -16,31 +16,35 @@ var initCmd = &cobra.Command{
 	Short: "Start a repository to use gommitizen",
 	//	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if directory != "" {
-			initialize(directory)
-		} else {
-			fmt.Println("A directory must be specified")
+		if strings.TrimSpace(directory) == "" {
+			directory = internal.GetCurrentDirectory()
 		}
+
+		initialize(directory, prefix)
 	},
 }
 
 func init() {
 	initCmd.Flags().StringVarP(&directory, "directory", "d", "", "Select a project directory to initialize")
+	initCmd.Flags().StringVarP(&prefix, "prefix", "p", "", "Select a prefix for the version file")
 
 	rootCmd.AddCommand(initCmd)
 }
 
-func initialize(path string) {
-	// check directory exists
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		fmt.Println(("The directory does not exist"))
-		os.Exit(1)
+func initialize(path, prefix string) {
+	// check if path ends with .version.json, if not, append it
+	if !strings.HasSuffix(version.ConfigFileName, path) {
+		path = path + "/" + version.ConfigFileName
 	}
 
-	config := version.VersionData{}
-	err := config.Initialize(path)
-	if err != nil {
-		fmt.Println("Error initializing repository:", err)
-		os.Exit(1)
-	}
+	config := version.NewVersionData(
+		"0.0.0",
+		version.DefaultCommit,
+		path,
+		prefix,
+	)
+
+	config.Save()
+
+	fmt.Println("Initializing gommitizen in", config.GetFilePath())
 }
