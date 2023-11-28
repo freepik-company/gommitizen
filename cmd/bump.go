@@ -12,18 +12,23 @@ import (
 var projectDir string
 var changelog bool
 var incrementType string
+var validIncrements = []string{"MAJOR", "MINOR", "PATCH"}
 
 // bumpCmd represents the bump command
 var bumpCmd = &cobra.Command{
 	Use:   "bump",
 	Short: "Make a version bump",
 	Run: func(cmd *cobra.Command, args []string) {
+		incrementType, _ = cmd.Flags().GetString("increment")
+		if incrementType != "" {
+			fmt.Printf("Bumping version with increment: %s\n", incrementType)
+		}
+
 		if projectDir == "" {
-			fmt.Printf("\n* Run bump in all projects\n")
+			fmt.Printf("\n# Run bump in all projects\n\n")
 			bumpVersion()
 			return
 		} else {
-			fmt.Printf("\n* Running bump in project %s\n", projectDir)
 			bumpProjectVersion(projectDir)
 			return
 		}
@@ -33,9 +38,26 @@ var bumpCmd = &cobra.Command{
 func init() {
 	bumpCmd.Flags().StringVarP(&projectDir, "directory", "d", "", "Select a project directory to bump")
 	bumpCmd.Flags().BoolVarP(&changelog, "changelog", "c", false, "Create CHANGELOG.md")
-	bumpCmd.Flags().StringVar(&incrementType, "increment", "", "Version increment type (MINOR, MAJOR, PATCH)")
+	bumpCmd.Flags().StringP("increment", "i", "", "Increment version (MAJOR, MINOR, PATCH)")
+	bumpCmd.PreRunE = validateIncrementArgs
 
 	rootCmd.AddCommand(bumpCmd)
+}
+
+func validateIncrementArgs(cmd *cobra.Command, args []string) error {
+	increment, _ := cmd.Flags().GetString("increment")
+
+	if increment == "" {
+		return nil
+	}
+
+	for _, valid := range validIncrements {
+		if increment == valid {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("invalid increment value: %s", increment)
 }
 
 func bumpProjectVersion(project string) {
@@ -97,15 +119,12 @@ func bumpRun(rootDir string, filePath string) error {
 	}
 
 	// Print the start message
-	fmt.Printf("\n* Running bump in project %s\n", filepath.Dir(relativePath))
-
-	config := version.VersionData{}
+	fmt.Printf("## Running bump in project %s\n\n", filepath.Dir(relativePath))
 
 	// Read the version data
-	errData := config.ReadData(filePath)
-	if errData != nil {
-		return fmt.Errorf("Error reading version data: %s", errData)
-	}
+	config := version.LoadVersionData(filePath)
+
+	config.SetUpdateChangelog(changelog) // Set the update changelog flag (default: false)
 
 	// Check if files have been modified in Git
 	modified, err := config.IsSomeFileModified()
@@ -116,9 +135,17 @@ func bumpRun(rootDir string, filePath string) error {
 	// If the file has been modified, update the version
 	if modified {
 		currentVersion := config.GetVersion()
-		newVersion, err := config.UpdateVersion()
-		if err != nil {
-			return fmt.Errorf("Error updating version: %s", err)
+		newVersion := currentVersion
+		if incrementType != "" {
+			newVersion, err = config.IncrementVersion(incrementType)
+			if err != nil {
+				return fmt.Errorf("Error incrementing version: %s", err)
+			}
+		} else {
+			newVersion, err = config.UpdateVersion()
+			if err != nil {
+				return fmt.Errorf("Error updating version: %s", err)
+			}
 		}
 
 		if newVersion == currentVersion {
