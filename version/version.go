@@ -71,6 +71,7 @@ func LoadVersionData(filePath string) *VersionData {
 		panic("[WARNING] Error loading .version.json: " + err.Error())
 	}
 
+	version.filePath = filePath
 	err = version.load()
 
 	if err != nil {
