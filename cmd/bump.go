@@ -122,11 +122,8 @@ func bumpRun(rootDir string, filePath string) error {
 	fmt.Printf("## Running bump in project %s\n\n", filepath.Dir(relativePath))
 
 	// Read the version data
-	config := version.NewVersionData()
-	errData := config.ReadData(filePath)
-	if errData != nil {
-		return fmt.Errorf("Error reading version data: %s", errData)
-	}
+	config := version.LoadVersionData(filePath)
+
 	config.SetUpdateChangelog(changelog) // Set the update changelog flag (default: false)
 
 	// Check if files have been modified in Git

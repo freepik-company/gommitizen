@@ -14,28 +14,6 @@ const versionFile = ".version.json"
 
 // Public methods
 
-// Initialize the .version.json file
-func (version *VersionData) Initialize(path string) error {
-	// check .version.json does not exist
-	configFile := path + "/.version.json"
-	if _, err := os.Stat(configFile); err == nil {
-		fmt.Println("The repository is already initialized")
-		os.Exit(1)
-	}
-
-	version.Commit = "HEAD^"
-	version.Version = "0.0.0"
-	version.filePath = configFile
-
-	err := version.Save()
-	if err != nil {
-		fmt.Println("Error saving .version.json file:", err)
-		return err
-	}
-
-	return nil
-}
-
 // Save the version and commit values in the .version.json file
 func (version *VersionData) Save() error {
 	jsonData, err := version.String()
@@ -58,25 +36,6 @@ func (version *VersionData) String() (string, error) {
 	}
 
 	return string(jsonData), nil
-}
-
-// Get the version and commit values from the .version.json file
-func (version *VersionData) ReadData(filePath string) error {
-	version.filePath = filePath
-
-	// Read the data from the .version.json file
-	err := version.readDataFromJsonFile()
-	if err != nil {
-		return fmt.Errorf("Error reading data from the .version.json file: %s", err)
-	}
-
-	// Get a Git object with updated data
-	version.git, err = version.returnGitObjectWithUpdatedData()
-	if err != nil {
-		return fmt.Errorf("Error al actualizar Git: %s", err)
-	}
-
-	return nil
 }
 
 // Returns true if some file has been modified in Git from a given commit in a given directory

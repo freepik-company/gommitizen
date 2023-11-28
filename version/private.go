@@ -12,7 +12,7 @@ import (
 
 // Private methods
 
-// Update the version in the files that contain it given by the parameter VersionFiles
+// Update the Version in the files that contain it given by the parameter VersionFiles
 func (version *VersionData) updateVersionFiles(v string) error {
 	// Update every file that contains the version in VersionFiles with the new version
 	for _, file := range version.VersionFiles {
@@ -29,7 +29,7 @@ func (version *VersionData) updateVersionFiles(v string) error {
 	return nil
 }
 
-// Save the version and commit values in the .version.json file
+// Save the Version and Commit values in the .version.json file
 func (version *VersionData) saveVersion() error {
 	// Serializes the updated structure back to JSON
 	updatedContent, err := json.MarshalIndent(version, "", "  ")
@@ -50,7 +50,7 @@ func (version *VersionData) saveVersion() error {
 	return nil
 }
 
-// Get the commit stored in the .version.json file
+// Get the Commit stored in the .version.json file
 func (version *VersionData) readDataFromJsonFile() error {
 	// Read the content of the .version.json file
 	content, err := os.ReadFile(version.filePath)
@@ -72,7 +72,7 @@ func (version *VersionData) readDataFromJsonFile() error {
 	return nil
 }
 
-// Check if the version file is initialized
+// Check if the Version file is initialized
 func (version *VersionData) checkVersionIsInitialized() error {
 	if version.filePath == "" {
 		return &VersionError{
