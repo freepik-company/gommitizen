@@ -1,3 +1,9 @@
+## 0.2.1 (2023-11-29)
+
+### Fix
+
+- **GH-Action**: change event on which the event is triggered
+
 ## 0.2.0 (2023-11-29)
 
 ### Feat
