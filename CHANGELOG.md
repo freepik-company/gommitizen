@@ -1,3 +1,9 @@
+## 0.2.3 (2023-11-29)
+
+### Fix
+
+- **GH-Actions**: change event to respond to
+
 ## 0.2.2 (2023-11-29)
 
 ### Fix
