@@ -1,3 +1,9 @@
+## 0.2.2 (2023-11-29)
+
+### Fix
+
+- **GH-Actions**: change event to listen on release
+
 ## 0.2.1 (2023-11-29)
 
 ### Fix
