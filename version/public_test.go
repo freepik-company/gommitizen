@@ -60,8 +60,8 @@ func TestVersionData_IsSomeFileModified(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockGit := mockGit.NewMockGitI(ctrl)
-	mockGit.EXPECT().GetChangedFiles().Return([]string{
+	mockGitHandler := mockGit.NewMockGitI(ctrl)
+	mockGitHandler.EXPECT().GetChangedFiles().Return([]string{
 		"file1.txt",
 		"file2.txt",
 	})
@@ -72,7 +72,7 @@ func TestVersionData_IsSomeFileModified(t *testing.T) {
 		Version:  DefaultVersionTag,
 		Prefix:   "v",
 
-		git: mockGit,
+		git: mockGitHandler,
 	}
 
 	tmpDir := t.TempDir()
@@ -88,7 +88,7 @@ func TestVersionData_UpdateVersion(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockGit := mockGit.NewMockGitI(ctrl)
+	mockGitHandler := mockGit.NewMockGitI(ctrl)
 
 	testCases := []struct {
 		name     string
@@ -133,15 +133,15 @@ func TestVersionData_UpdateVersion(t *testing.T) {
 		},
 	}
 
-	mockGit.EXPECT().GetChangedFiles().Return([]string{
+	mockGitHandler.EXPECT().GetChangedFiles().Return([]string{
 		"file1.txt",
 		"file2.txt",
 	}).MaxTimes(len(testCases))
-	mockGit.EXPECT().GetFromCommit().Return("0.0.0").MaxTimes(len(testCases))
-	mockGit.EXPECT().GetDirPath().Return("/tmp").MaxTimes(len(testCases))
-	mockGit.EXPECT().RetrieveData().Return(nil).MaxTimes(len(testCases))
-	mockGit.EXPECT().SetFromCommit("abcdef1").MaxTimes(len(testCases))
-	mockGit.EXPECT().GetLastCommit().Return("abcdef1").AnyTimes()
+	mockGitHandler.EXPECT().GetFromCommit().Return("0.0.0").MaxTimes(len(testCases))
+	mockGitHandler.EXPECT().GetDirPath().Return("/tmp").MaxTimes(len(testCases))
+	mockGitHandler.EXPECT().RetrieveData().Return(nil).MaxTimes(len(testCases))
+	mockGitHandler.EXPECT().SetFromCommit("abcdef1").MaxTimes(len(testCases))
+	mockGitHandler.EXPECT().GetLastCommit().Return("abcdef1").AnyTimes()
 
 	version := VersionData{
 		filePath: "/tmp/.version.json",
@@ -149,12 +149,12 @@ func TestVersionData_UpdateVersion(t *testing.T) {
 		Version:  DefaultVersionTag,
 		Prefix:   "v",
 
-		git: mockGit,
+		git: mockGitHandler,
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			mockGit.EXPECT().GetCommitMessages().Return(tc.messages)
+			mockGitHandler.EXPECT().GetCommitMessages().Return(tc.messages)
 
 			tmpDir := t.TempDir()
 			err := version.Initialize(tmpDir)
@@ -165,8 +165,8 @@ func TestVersionData_UpdateVersion(t *testing.T) {
 			addFiles := append([]string{}, relativeFilePath)
 			commitMessage := "Updated version (" + tc.expected + ") in tmp"
 			tagMessage := tc.expected + "_tmp"
-			mockGit.EXPECT().ConfirmChanges(addFiles, commitMessage, tagMessage).Return(nil).AnyTimes()
-			mockGit.EXPECT().GetOutput().Return([]string{
+			mockGitHandler.EXPECT().ConfirmChanges(addFiles, commitMessage, tagMessage).Return(nil).AnyTimes()
+			mockGitHandler.EXPECT().GetOutput().Return([]string{
 				"[master abcdef1] Commit message example",
 				"1 file changed, 1 insertion(+)",
 			}).AnyTimes()
@@ -182,7 +182,7 @@ func TestVersionData_IncrementVersion(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockGit := mockGit.NewMockGitI(ctrl)
+	mockGitHandler := mockGit.NewMockGitI(ctrl)
 
 	testCases := []struct {
 		name     string
@@ -217,7 +217,7 @@ func TestVersionData_IncrementVersion(t *testing.T) {
 		Version:  DefaultVersionTag,
 		Prefix:   "v",
 
-		git: mockGit,
+		git: mockGitHandler,
 	}
 
 	for _, tc := range testCases {
@@ -231,10 +231,10 @@ func TestVersionData_IncrementVersion(t *testing.T) {
 			addFiles := append([]string{}, relativeFilePath)
 
 			if tc.incType != "none" {
-				mockGit.EXPECT().GetLastCommit().Return("abcdef1")
-				mockGit.EXPECT().GetDirPath().Return("/tmp")
-				mockGit.EXPECT().ConfirmChanges(addFiles, "Updated version ("+tc.expected+") in tmp", tc.expected+"_tmp").Return(nil)
-				mockGit.EXPECT().GetOutput().Return([]string{}).AnyTimes()
+				mockGitHandler.EXPECT().GetLastCommit().Return("abcdef1")
+				mockGitHandler.EXPECT().GetDirPath().Return("/tmp")
+				mockGitHandler.EXPECT().ConfirmChanges(addFiles, "Updated version ("+tc.expected+") in tmp", tc.expected+"_tmp").Return(nil)
+				mockGitHandler.EXPECT().GetOutput().Return([]string{}).AnyTimes()
 
 				newVersion, err := version.IncrementVersion(tc.incType)
 				assert.NoError(t, err, "Must not have error when incrementing the version")
@@ -251,9 +251,9 @@ func TestVersionData_UpdateChangelog(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockGit := mockGit.NewMockGitI(ctrl)
+	mockGitHandler := mockGit.NewMockGitI(ctrl)
 
-	mockGit.EXPECT().GetCommitMessages().Return([]string{
+	mockGitHandler.EXPECT().GetCommitMessages().Return([]string{
 		"fix: fix bug",
 		"feat: add new feature",
 		"bc: breaking change",
@@ -266,14 +266,14 @@ func TestVersionData_UpdateChangelog(t *testing.T) {
 		Version:  DefaultVersionTag,
 		Prefix:   "v",
 
-		git: mockGit,
+		git: mockGitHandler,
 	}
 
 	tmpDir := t.TempDir()
 	err := version.Initialize(tmpDir)
 	assert.NoError(t, err, "Must not have error when initializing")
 
-	mockGit.EXPECT().GetDirPath().Return(tmpDir)
+	mockGitHandler.EXPECT().GetDirPath().Return(tmpDir)
 
 	err = version.UpdateChangelog()
 	assert.NoError(t, err, "Must not have error when updating the changelog")

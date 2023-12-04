@@ -51,14 +51,14 @@ func NewVersionData(version string, commit string, filePath string, prefix strin
 	dirPath := filepath.Dir(relativePath)
 
 	// New Git object
-	git := git.NewGit(dirPath, commit)
+	gitHandler := git.NewGit(dirPath, commit)
 
 	thisVersion := &VersionData{
 		Version:  version,
 		Commit:   commit,
 		filePath: filePath,
 		Prefix:   prefix,
-		git:      git,
+		git:      gitHandler,
 	}
 
 	return thisVersion
@@ -96,9 +96,9 @@ func LoadVersionData(filePath string) *VersionData {
 	dirPath := filepath.Dir(relativePath)
 
 	// New Git object
-	git := git.NewGit(dirPath, version.Commit)
+	gitHandler := git.NewGit(dirPath, version.Commit)
 
-	version.SetGit(git)
+	version.SetGit(gitHandler)
 
 	version.filePath = filePath
 
