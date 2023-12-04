@@ -42,6 +42,13 @@ start-sonar:
 stop-sonar:
 	@docker-compose down
 
+make test: tests
+make tests:
+	@echo "Running tests..."
+	@go test -v ./...
+	@echo
+	@echo "Done!"
+
 clean: stop-sonar
 	@echo "Cleaning..."
 	@rm -rf bin/*
