@@ -3,9 +3,10 @@ package version
 import (
 	"encoding/json"
 	"fmt"
-	"gommitizen/git"
 	"os"
 	"path/filepath"
+
+	"gommitizen/git"
 )
 
 // Constants
@@ -25,32 +26,45 @@ type VersionData struct {
 	VersionFiles    []string `json:"version_files"`
 	Prefix          string   `json:"prefix"`
 	filePath        string
-	git             *git.Git
+	git             git.GitI
 	updateChangelog bool
 }
 
+// Public Functions
+
+// NewVersionData Create a new VersionData object
 func NewVersionData(version string, commit string, filePath string, prefix string) *VersionData {
 	var err error
-
-	// if file already exists, raise an error
-	_, err = os.Stat(filePath)
-	if err == nil {
-		panic("[WARNING] .version.json already exists")
-	}
 
 	if prefix == "" {
 		prefix = filepath.Base(filepath.Dir(filePath))
 	}
 
-	thisVersion := &VersionData{Version: version, Commit: commit, filePath: filePath, Prefix: prefix}
-
+	// Get the relative path to the current directory
+	var relativePath string
+	relativePath, err = getRelativePath(filePath)
 	if err != nil {
-		panic("[WARNING] Error when creating .version.json: " + err.Error())
+		panic("Error obtaining the relative path: " + err.Error())
+	}
+
+	// Get the base path of the file
+	dirPath := filepath.Dir(relativePath)
+
+	// New Git object
+	git := git.NewGit(dirPath, commit)
+
+	thisVersion := &VersionData{
+		Version:  version,
+		Commit:   commit,
+		filePath: filePath,
+		Prefix:   prefix,
+		git:      git,
 	}
 
 	return thisVersion
 }
 
+// LoadVersionData Load the version data from the .version.json file
 func LoadVersionData(filePath string) *VersionData {
 	_, err := os.Stat(filePath)
 
@@ -71,8 +85,22 @@ func LoadVersionData(filePath string) *VersionData {
 		panic("[WARNING] Error loading .version.json: " + err.Error())
 	}
 
+	// Get the relative path to the current directory
+	var relativePath string
+	relativePath, err = getRelativePath(filePath)
+	if err != nil {
+		panic("Error obtaining the relative path: " + err.Error())
+	}
+
+	// Get the base path of the file
+	dirPath := filepath.Dir(relativePath)
+
+	// New Git object
+	git := git.NewGit(dirPath, version.Commit)
+
+	version.SetGit(git)
+
 	version.filePath = filePath
-	err = version.load()
 
 	if err != nil {
 		panic("[WARNING] Error loading .version.json: " + err.Error())
@@ -81,6 +109,7 @@ func LoadVersionData(filePath string) *VersionData {
 	return version
 }
 
+// EmptyVersionData Create a new empty VersionData object
 func EmptyVersionData(filePath string) *VersionData {
 	newVersion := NewVersionData("", "", filePath, "")
 	err := newVersion.Save()
@@ -91,33 +120,6 @@ func EmptyVersionData(filePath string) *VersionData {
 
 	return newVersion
 }
-
-// Getters
-
-func (version *VersionData) GetVersion() string {
-	return version.Version
-}
-
-func (version *VersionData) GetCommit() string {
-	return version.Commit
-}
-
-func (version *VersionData) GetFilePath() string {
-	return version.filePath
-}
-
-func (version *VersionData) GetPrefix() string {
-	return version.Prefix
-}
-func (version *VersionData) GetGit() *git.Git {
-	return version.git
-}
-
-func (version *VersionData) GetUpdateChangelog() bool {
-	return version.updateChangelog
-}
-
-// Funciones públicas
 
 func (version *VersionData) Initialize(path string) error {
 	// check .version.json does not exist
@@ -137,6 +139,32 @@ func (version *VersionData) Initialize(path string) error {
 	return nil
 }
 
+// Getters
+
+func (version *VersionData) GetVersion() string {
+	return version.Version
+}
+
+func (version *VersionData) GetCommit() string {
+	return version.Commit
+}
+
+func (version *VersionData) GetFilePath() string {
+	return version.filePath
+}
+
+func (version *VersionData) GetPrefix() string {
+	return version.Prefix
+}
+
+func (version *VersionData) GetGit() git.GitI {
+	return version.git
+}
+
+func (version *VersionData) GetUpdateChangelog() bool {
+	return version.updateChangelog
+}
+
 // Setters
 func (version *VersionData) SetVersion(v string) {
 	version.Version = v
@@ -150,18 +178,10 @@ func (version *VersionData) SetFilePath(fp string) {
 	version.filePath = fp
 }
 
-func (version *VersionData) SetGit(g *git.Git) {
+func (version *VersionData) SetGit(g git.GitI) {
 	version.git = g
 }
 
 func (version *VersionData) SetUpdateChangelog(uc bool) {
 	version.updateChangelog = uc
-}
-
-// private methods
-func (version *VersionData) load() error {
-	var err error
-	version.git, err = version.returnGitObjectWithUpdatedData()
-
-	return err
 }

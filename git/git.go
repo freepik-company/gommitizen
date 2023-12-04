@@ -1,63 +1,79 @@
 package git
 
 import (
+	"fmt"
 	"os/exec"
 	"path/filepath"
 	"strings"
 )
 
-// Managa custom errors
-type GitError struct {
-	Message string
-}
-
-func (e *GitError) Error() string {
-	return e.Message
-}
-
 // Manage Git information for our project
 type Git struct {
 	DirPath        string
 	FromCommit     string
-	LastCommit     string
-	ChangedFiles   []string
-	CommitMessages []string
-	ExcludedFiles  []string
+	gitPath        string
+	lastCommit     string
+	changedFiles   []string
+	commitMessages []string
+	filterFiles    []string
+	output         []string
+}
+
+// Constructor
+
+// NewGit Create a new Git instance
+func NewGit(dirPath string, fromCommit string) *Git {
+	var err error
+
+	git := &Git{
+		DirPath:    dirPath,
+		FromCommit: fromCommit,
+	}
+
+	git.gitPath, err = git.getTopLevel()
+	if err != nil {
+		panic("Error obtaining the top level of the Git repository: " + err.Error())
+	}
+
+	return git
 }
 
 // Setters
 func (git *Git) SetDirPath(dirPath string) {
+	var err error
+
+	git.gitPath, err = git.getTopLevel()
+	if err != nil {
+		panic("Error obtaining the top level of the Git repository: " + err.Error())
+	}
 	git.DirPath = dirPath
+}
+
+func (git *Git) SetGitPath(gitPath string) {
+	git.gitPath = gitPath
 }
 
 func (git *Git) SetFromCommit(fromCommit string) {
 	git.FromCommit = fromCommit
 }
 
-func (git *Git) setExcludedFiles(excludedFiles []string) {
+func (git *Git) SetFilterFiles(excludedFiles []string) {
 	for i := 0; i < len(excludedFiles); i++ {
-		git.ExcludedFiles = append(git.ExcludedFiles, filepath.Join(git.DirPath, excludedFiles[i]))
+		git.filterFiles = append(git.filterFiles, filepath.Join(git.DirPath, excludedFiles[i]))
 	}
-}
-
-func (git *Git) setLastCommit() error {
-	lastCommit, err := getLastCommitFromGit()
-	if err != nil {
-		return err
-	}
-
-	git.LastCommit = lastCommit
-
-	return nil
 }
 
 // Getters
+func (git *Git) GetDirPath() string {
+	return git.DirPath
+}
+
 func (git *Git) GetChangedFiles() []string {
-	return git.ChangedFiles
+	return git.changedFiles
 }
 
 func (git *Git) GetCommitMessages() []string {
-	return git.CommitMessages
+	return git.commitMessages
 }
 
 func (git *Git) GetFromCommit() string {
@@ -65,18 +81,69 @@ func (git *Git) GetFromCommit() string {
 }
 
 func (git *Git) GetLastCommit() string {
-	return git.LastCommit
+	return git.lastCommit
 }
 
-func (git *Git) GetExcludedFiles() []string {
-	return git.ExcludedFiles
+func (git *Git) GetFilterFiles() []string {
+	return git.filterFiles
+}
+
+func (git *Git) GetOutput() []string {
+	return git.output
 }
 
 // Public methods
 
-// Get the list of modified files in Git from a given commit in a given directory and store them in the ChangedFiles attribute
-// Also retrieves the commit messages and stores them in the CommitMessages attribute.
-func (git *Git) UpdateData() error {
+// Initialize a Git directory (git init)
+func (git *Git) Initialize(gitPath string) error {
+	var err error
+	var output []byte
+
+	git.gitPath = gitPath
+	git.DirPath = gitPath
+
+	cmd := exec.Command("git", "init", git.gitPath)
+	output, err = cmd.Output()
+
+	for _, line := range strings.Split(string(output), "\n") {
+		git.output = append(git.output, line)
+	}
+
+	if err != nil {
+		return fmt.Errorf("error: the Git repository could not be initialized: %v", err)
+	}
+
+	git.SetFromCommit("HEAD")
+	err = git.RetrieveLastCommit()
+	if err != nil {
+		return &GitError{
+			Message: "Error: the data could not be retrieved: " + err.Error(),
+		}
+	}
+
+	return nil
+}
+
+// RetrieveLastCommit Get the last commit in Git and store it in the lastCommit attribute
+func (git *Git) RetrieveLastCommit() error {
+	lastCommit, err := git.getLastCommitFromGit()
+	if err != nil {
+		return err
+	}
+
+	git.lastCommit = lastCommit
+
+	return nil
+}
+
+// RetrieveData Get the list of modified files in Git from a given commit in a given directory and store them in the changedFiles attribute
+// Also retrieves the commit messages and stores them in the commitMessages attribute.
+func (git *Git) RetrieveData() error {
+	var err error
+	var changedFiles []string
+	var commitMessages []string
+	var lastCommit string
+
 	if git.DirPath == "" {
 		return &GitError{
 			Message: "Error: the working directory has not been specified",
@@ -89,52 +156,104 @@ func (git *Git) UpdateData() error {
 		}
 	}
 
-	changedFiles, err := git.getListOfModifiedFilesInGitFromAGivenCommitInDirExcludingFiles()
+	changedFiles, err = git.getListOfModifiedFilesInGitFromAGivenCommitInDirExcludingFiles()
 	if err != nil {
-		return err
+		return fmt.Errorf("error: the list of modified files could not be retrieved: %v", err)
 	}
-	git.ChangedFiles = changedFiles
+	git.changedFiles = changedFiles
 
-	commitMesages, err := git.getCommitMessages()
+	commitMessages, err = git.getCommitMessages()
 	if err != nil {
-		return err
+		return fmt.Errorf("error: the list of commit messages could not be retrieved: %v", err)
 	}
-	git.CommitMessages = commitMesages
+	git.commitMessages = commitMessages
 
-	lastCommit, err := getLastCommitFromGit()
+	lastCommit, err = git.getLastCommitFromGit()
 	if err != nil {
 		return err
 	}
-	git.LastCommit = lastCommit
+	git.lastCommit = lastCommit
 
 	return nil
 }
 
-// Update the data of Git
-func (git *Git) UpdateGit(files []string, commitMessage string, tagMessage string) ([]string, error) {
-	output := []string{}
+// ConfirmChanges Update the data of Git
+func (git *Git) ConfirmChanges(files []string, commitMessage string, tagMessage string) error {
+	var err error
+
+	git.CleanOutput()
 
 	for _, file := range files {
-		outputAdd, errAdd := add(file)
-		if errAdd != nil {
-			return nil, errAdd
+		err = git.Add(file)
+		if err != nil {
+			return fmt.Errorf("error: the file %s could not be added: %v", file, err)
 		}
-		output = append(output, outputAdd)
 	}
 
-	outputCommit, errCommit := commit(commitMessage)
-	if errCommit != nil {
-		return nil, errCommit
+	err = git.Commit(commitMessage)
+	if err != nil {
+		return fmt.Errorf("error: the commit could not be created: %v", err)
 	}
-	output = append(output, outputCommit)
 
-	outputTag, errTag := tag(tagMessage)
-	if errTag != nil {
-		return nil, errTag
+	err = git.Tag(tagMessage)
+	if err != nil {
+		return fmt.Errorf("error: the tag could not be created: %v", err)
 	}
-	output = append(output, outputTag)
 
-	return output, nil
+	return nil
+}
+
+// CleanOutput Clean the output of Git
+func (git *Git) CleanOutput() {
+	git.output = []string{}
+}
+
+// Add a file to the Git repository
+func (git *Git) Add(filePath string) error {
+	cmd := exec.Command("git", "-C", git.gitPath, "add", filePath)
+	output, err := cmd.Output()
+
+	for _, line := range strings.Split(string(output), "\n") {
+		git.output = append(git.output, line)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Commit Make a new commit in Git
+func (git *Git) Commit(message string) error {
+	cmd := exec.Command("git", "-C", git.gitPath, "commit", "-m", message)
+	output, err := cmd.Output()
+
+	for _, line := range strings.Split(string(output), "\n") {
+		git.output = append(git.output, line)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Tag Make a new tag in Git
+func (git *Git) Tag(tag string) error {
+	cmd := exec.Command("git", "-C", git.gitPath, "tag", tag)
+	output, err := cmd.Output()
+
+	for _, line := range strings.Split(string(output), "\n") {
+		git.output = append(git.output, line)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Private methods
@@ -142,7 +261,7 @@ func (git *Git) UpdateGit(files []string, commitMessage string, tagMessage strin
 // Get the list of modified files in Git from a given commit in a given directory
 // Allows you to exclude files from the list of modified files
 func (git *Git) getListOfModifiedFilesInGitFromAGivenCommitInDirExcludingFiles() ([]string, error) {
-	cmd := exec.Command("git", "diff", "--name-only", git.FromCommit, "HEAD", git.DirPath)
+	cmd := exec.Command("git", "-C", git.gitPath, "diff", "--name-only", git.FromCommit, "HEAD", git.DirPath)
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, err
@@ -154,9 +273,9 @@ func (git *Git) getListOfModifiedFilesInGitFromAGivenCommitInDirExcludingFiles()
 	// Remove the last line (empty)
 	lines = lines[:len(lines)-1]
 
-	// Remvoe excluded files from the list of modified files
-	for _, excludeFile := range git.ExcludedFiles {
-		lines = removeStringFromSlice(lines, excludeFile)
+	// Remove excluded files from the list of modified files
+	for _, excludeFile := range git.filterFiles {
+		lines = RemoveStringFromSlice(lines, excludeFile)
 	}
 
 	return lines, nil
@@ -165,7 +284,7 @@ func (git *Git) getListOfModifiedFilesInGitFromAGivenCommitInDirExcludingFiles()
 // Get the commit messages for the modified files in Git from a given commit in a given directory
 func (git *Git) getCommitMessages() ([]string, error) {
 	// Build the git log command with options to get messages and modified files
-	args := append([]string{"log", "--pretty=%s", git.FromCommit + "..", "--"}, git.ChangedFiles...)
+	args := append([]string{"-C", git.gitPath, "log", "--pretty=%s", git.FromCommit + "..", "--"}, git.changedFiles...)
 	cmd := exec.Command("git", args...)
 
 	output, err := cmd.Output()
@@ -189,63 +308,34 @@ func (git *Git) getCommitMessages() ([]string, error) {
 	return CommitMessages, nil
 }
 
-// Private functions
-
-// Add a file to the Git repository
-func add(filePath string) (string, error) {
-	cmd := exec.Command("git", "add", filePath)
-	output, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-
-	return string(output), nil
-}
-
-// Make a new commit in Git
-func commit(message string) (string, error) {
-	cmd := exec.Command("git", "commit", "-m", message)
-	output, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-
-	return string(output), nil
-}
-
-// Make a new tag in Git
-func tag(tag string) (string, error) {
-	cmd := exec.Command("git", "tag", tag)
-	output, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-
-	return string(output), nil
-}
-
 // Get the current commit in Git
-func getLastCommitFromGit() (string, error) {
+func (git *Git) getLastCommitFromGit() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "HEAD")
 	output, err := cmd.Output()
 	if err != nil {
 		return "", err
 	}
 
+	for _, line := range strings.Split(string(output), "\n") {
+		git.output = append(git.output, line)
+	}
+
 	return strings.TrimSpace(string(output)), nil
 }
 
-// Auxiliar functions
-
-// Remove a string from a slice of strings
-func removeStringFromSlice(slice []string, s string) []string {
-	var result []string
-
-	for _, str := range slice {
-		if str != s {
-			result = append(result, str)
+// GetTopLevel Get the top level of the Git repository
+func (git *Git) getTopLevel() (string, error) {
+	if git.DirPath == "" {
+		return "", &GitError{
+			Message: "Error: the working directory has not been specified",
 		}
 	}
 
-	return result
+	cmd := exec.Command("git", "-C", git.DirPath, "rev-parse", "--show-toplevel")
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("error: the top level could not be retrieved: %v", err)
+	}
+
+	return strings.TrimSpace(string(output)), nil
 }
