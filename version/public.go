@@ -61,7 +61,8 @@ func (version *VersionData) UpdateVersion() (string, error) {
 	}
 
 	// Determine the type of version increment based on the commit messages
-	incType := determineVersionBump(version.git.CommitMessages)
+	commitMessages := version.git.GetCommitMessages()
+	incType := determineVersionBump(commitMessages)
 
 	// Increment the current version
 	currentVersion, newVersion, err := incrementVersion(version.Version, incType)
@@ -74,7 +75,7 @@ func (version *VersionData) UpdateVersion() (string, error) {
 	if incType != "none" {
 		// Print the list of commit messages
 		fmt.Println("Commit messages: ")
-		for _, msg := range version.git.GetCommitMessages() {
+		for _, msg := range commitMessages {
 			if strings.HasPrefix(msg, "Updated version") {
 				continue
 			}
@@ -89,14 +90,14 @@ func (version *VersionData) UpdateVersion() (string, error) {
 				strings.HasSuffix(file, "CHANGELOG.md") {
 				continue
 			}
-			print := true
+			output := true
 			for _, versionFile := range version.VersionFiles {
 				versionFileParts := strings.Split(versionFile, ":")
 				if strings.HasSuffix(file, versionFileParts[0]) {
-					print = false
+					output = false
 				}
 			}
-			if print == true {
+			if output == true {
 				fmt.Println("+", file)
 			}
 		}
@@ -104,10 +105,19 @@ func (version *VersionData) UpdateVersion() (string, error) {
 
 		// Report the version bump, update the version and commit values and update Git
 		fmt.Println("Version bumped from " + currentVersion + " to " + newVersion)
-		version.Commit = version.git.LastCommit
+		version.Commit = version.git.GetFromCommit()
 		version.Version = newVersion
 
+		// Update Git data after the commit
+		err = version.git.RetrieveData()
+		if err != nil {
+			fmt.Println("Error updating Git data:", err)
+			return "", err
+		}
+
 		// Save the updated version and commit values in the .version.json file
+		version.SetCommit(version.git.GetLastCommit())
+		version.git.SetFromCommit(version.git.GetLastCommit())
 		err = version.saveVersion()
 		if err != nil {
 			return "", &VersionError{
@@ -115,7 +125,7 @@ func (version *VersionData) UpdateVersion() (string, error) {
 			}
 		}
 
-		// Update file wich contains the version field we want to update
+		// Update file which contains the version field we want to update
 		err = version.updateVersionFiles(newVersion)
 		if err != nil {
 			return "", &VersionError{
@@ -169,7 +179,7 @@ func (version *VersionData) IncrementVersion(incrementType string) (string, erro
 
 	// Update the version value of the .version.json file
 	version.Version = newVersion
-	version.Commit = version.git.LastCommit
+	version.Commit = version.git.GetLastCommit()
 
 	// Save the updated version value in the .version.json file
 	err = version.saveVersion()
@@ -179,7 +189,7 @@ func (version *VersionData) IncrementVersion(incrementType string) (string, erro
 		}
 	}
 
-	// Update file wich contains the version field we want to update
+	// Update file which contains the version field we want to update
 	err = version.updateVersionFiles(newVersion)
 	if err != nil {
 		return "", &VersionError{
@@ -231,11 +241,27 @@ func (version *VersionData) UpdateChangelog() error {
 		}
 	}
 
-	c := changelog.New(version.Version, version.git.DirPath)
+	c := changelog.New(version.Version, version.git.GetDirPath())
 	c.BcChanges = bcCommits
 	c.FeatChanges = featCommits
 	c.FixChanges = fixCommits
 	err = c.Write()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (version *VersionData) RetrieveRepositoryData() error {
+	// Check if the version file is initialized
+	err := version.checkVersionIsInitialized()
+	if err != nil {
+		return err
+	}
+
+	// Update Git data
+	err = version.loadGitObjectWithUpdatedData()
 	if err != nil {
 		return err
 	}

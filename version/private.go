@@ -6,8 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"gommitizen/git"
 )
 
 // Private methods
@@ -20,7 +18,7 @@ func (version *VersionData) updateVersionFiles(v string) error {
 		fileParts := strings.Split(file, ":")
 		file := fileParts[0]
 		substring := fileParts[1]
-		err := updateVersionOfFiles(filepath.Join(version.git.DirPath, file), substring, v)
+		err := updateVersionOfFiles(filepath.Join(version.git.GetDirPath(), file), substring, v)
 		if err != nil {
 			return fmt.Errorf("Error updating the version in the file %s: %s", file, err)
 		}
@@ -102,30 +100,17 @@ func (version *VersionData) checkVersionIsInitialized() error {
 }
 
 // return Git object with updated data
-func (version *VersionData) returnGitObjectWithUpdatedData() (*git.Git, error) {
-	// Get the relative path to the current directory
-	relativePath, err := getRelativePath(version.filePath)
-	if err != nil {
-		return nil, fmt.Errorf("Error obtaining the relative path: %s", err)
-	}
-
-	// Get the base path of the file
-	dirPath := filepath.Dir(relativePath)
-
-	// Make a Git instance
-	git := git.Git{
-		DirPath:    dirPath,
-		FromCommit: version.Commit,
-	}
+func (version *VersionData) loadGitObjectWithUpdatedData() error {
+	var err error
 
 	// Update Git data
-	err = git.UpdateData()
+	err = version.git.RetrieveData()
 	if err != nil {
 		fmt.Println("Error updating Git data:", err)
-		return nil, err
+		return err
 	}
 
-	return &git, nil
+	return nil
 }
 
 // commitFiles Commit the changes in Git
@@ -139,24 +124,27 @@ func (version *VersionData) commitFiles() error {
 	// Pay attention to the CHANGELOG.md file and those that host extra versions such as Chart.yaml
 	addFiles := []string{}
 	addFiles = append(addFiles, relativeFilePath)
+	dirPath := version.git.GetDirPath()
 	if version.updateChangelog == true {
-		addFiles = append(addFiles, filepath.Join(version.git.DirPath, "CHANGELOG.md"))
+		addFiles = append(addFiles, filepath.Join(dirPath, "CHANGELOG.md"))
 	}
 	for _, file := range version.VersionFiles {
 		// Split file into file name and variable by colon
 		fileParts := strings.Split(file, ":")
-		file := filepath.Join(version.git.DirPath, fileParts[0])
+		file := filepath.Join(version.git.GetDirPath(), fileParts[0])
 		addFiles = append(addFiles, file)
 	}
-	commitMessage := "Updated version (" + version.Version + ") in " + getBaseDirFromFilePath(version.git.DirPath)
-	tagMessage := version.Version + "_" + getBaseDirFromFilePath(version.git.DirPath)
-	output, err := version.git.UpdateGit(addFiles, commitMessage, tagMessage)
+	prj := getBaseDirFromFilePath(dirPath)
+	commitMessage := "Updated version (" + version.Version + ") in " + prj
+	tagMessage := version.Version + "_" + prj
+	err = version.git.ConfirmChanges(addFiles, commitMessage, tagMessage)
 	if err != nil {
 		fmt.Println("Error updating Git:", err)
 		return err
 	}
 
 	fmt.Println("")
+	output := version.git.GetOutput()
 	for _, line := range output {
 		if line != "" {
 			fmt.Println(line)

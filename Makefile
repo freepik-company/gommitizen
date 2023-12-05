@@ -42,6 +42,16 @@ start-sonar:
 stop-sonar:
 	@docker-compose down
 
+regenerate_mocks:
+	mockgen -package mockGit -destination git/mockGit/mock_interface.go gommitizen/git GitI
+
+test: tests
+tests:
+	@echo "Running tests..."
+	@go test -v ./...
+	@echo
+	@echo "Done!"
+
 clean: stop-sonar
 	@echo "Cleaning..."
 	@rm -rf bin/*

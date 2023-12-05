@@ -112,8 +112,11 @@ func bumpVersion() {
 
 // Run the bump command for a .version.json file
 func bumpRun(rootDir string, filePath string) error {
+	var err error
+	var relativePath string
+
 	// Get the relative path to the current directory
-	relativePath, err := filepath.Rel(rootDir, filePath)
+	relativePath, err = filepath.Rel(rootDir, filePath)
 	if err != nil {
 		return fmt.Errorf("Error obtaining relative path: %s", err)
 	}
@@ -123,6 +126,10 @@ func bumpRun(rootDir string, filePath string) error {
 
 	// Read the version data
 	config := version.LoadVersionData(filePath)
+	err = config.RetrieveRepositoryData()
+	if err != nil {
+		return fmt.Errorf("Error retrieving repository data: %s", err)
+	}
 
 	config.SetUpdateChangelog(changelog) // Set the update changelog flag (default: false)
 
