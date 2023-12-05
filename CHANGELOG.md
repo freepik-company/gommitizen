@@ -1,3 +1,19 @@
+## 0.3.0 (2023-12-05)
+
+### Feat
+
+- add new dependencies for testing
+- add test target to makefile
+- git interface for mocking
+- unit tests
+- mock for git object
+
+### Refactor
+
+- rename git object to gitHandler to avoid collides with package name
+- delete nor needed file
+- update code for unit testing
+
 ## 0.2.3 (2023-11-29)
 
 ### Fix
