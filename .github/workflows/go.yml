@@ -14,16 +14,16 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.20'
+        go-version: '1.21.4'
 
     - name: Build
       run: go build -v
 
     - name: Test
-      env:
-        EMAIL: gommitizen@localhost
-        GIT_AUTHOR_NAME: gommitizen
-      run: go test -v ./...
+      run: |
+        git config --global user.email "gommitizen@localhost"
+        git config --global user.name "gommitizen"
+        go test -v ./...
 
     - name: Copy, tag with version and create SHA256 checksum
       run: |
