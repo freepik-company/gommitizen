@@ -20,6 +20,9 @@ jobs:
       run: go build -v
 
     - name: Test
+      env:
+        EMAIL: gommitizen@localhost
+        GIT_AUTHOR_NAME: gommitizen
       run: go test -v ./...
 
     - name: Copy, tag with version and create SHA256 checksum
