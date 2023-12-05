@@ -1,3 +1,9 @@
+## 0.3.1 (2023-12-05)
+
+### Fix
+
+- fix unit tests in pipeline
+
 ## 0.3.0 (2023-12-05)
 
 ### Feat
