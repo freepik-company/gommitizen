@@ -121,6 +121,62 @@ The following flags are available for the `bump` command:
 - `-c` or `--changelog`: It generates a changelog with the changes made since the last version.
 - `-i` or `--increment`: The type of increment to make. It can be `major`, `minor`, or `patch`. If it is specified the automatic detection of version is not run.  
 
+### Docker
+
+To run Gommitizen in a Docker container, run:
+
+```bash
+docker run \
+  -v <directory>:/code \
+  gommitizen:<tag> <command> [flags]
+```
+
+Replace  `<tag>` with the tag of the image you want to use. Replace `<directory>` with the directory where the project is located. Select the command and flags you want to use.
+
+### Examples
+
+#### Init
+
+To initialize the versioning of a project, run:
+
+```bash
+gommitizen init -d <directory> -p <prefix>
+```
+
+This will create a `.version` file in the given directory with the version `0.0.0`.
+
+#### Bump
+
+To bump the version of a project, run:
+
+```bash
+gommitizen bump
+```
+
+This will bump the version of all the projects in the current directory. 
+
+If you want to bump the version of a specific project, run:
+
+```bash
+gommitizen bump -d <directory>
+```
+
+This will bump the version of the project in the given directory.
+
+if you want to bump the version of projecta and generate a changelog, run:
+
+```bash
+gommitizen bump -c
+```
+
+This will bump the version of the projects and generate a changelog with the changes made since the last version.
+
+If you want to bump the version of project to a major version, run:
+
+```bash
+gommitizen bump -i major
+```
+
 ## Types of commits
 
 There are two types of commits: version commits and regular commits. Version commits are those that change the version of the software, while regular commits are those that do not change the version.
