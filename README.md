@@ -196,3 +196,25 @@ Those that do not change the version of the software are those that have a commi
 - `chore:`: Indicates a change in the build process or auxiliary tools in the software.
 - `ci:`: Indicates a change in the CI configuration files and scripts in the software.
 - `style:`: Indicates a change in the style of the code in the software.
+
+## Version files structure
+
+The version files are structured as follows:
+
+```json
+{
+    "version": "0.18.1",
+    "commit": "72929b90547b8527e22e402b6784e0c7f5812428",
+    "version_files": [
+        "Chart.yaml:version",
+        "other-version.txt:version"
+    ],
+    "prefix": ""
+}
+```
+
+The `version` field contains the current version of the software. The `commit` field contains the commit where the version was changed. The `version_files` field contains the list of files that contain the version of the software and the bump process will upgrade too. The `prefix` field contains the prefix of the tag message that changed the version of the software.
+
+The `version` and `commit` fields are managed by Gommitizen. The `version_files` and `prefix` fields are managed by the user.
+
+`version_files` is a list of strings. Each string contains the path of the file and the name of the variable that contains the version. The path and the name of the variable are separated by a colon (`:`). The path is relative to the root of the project.
