@@ -199,6 +199,8 @@ Those that do not change the version of the software are those that have a commi
 
 ## Version files structure
 
+Each project in the monorepo has a `.version.json` file that contains the version of the software.
+
 The version files are structured as follows:
 
 ```json
