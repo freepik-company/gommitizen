@@ -42,6 +42,7 @@ start-sonar:
 stop-sonar:
 	@docker-compose down
 
+mocks: regenerate_mocks
 regenerate_mocks:
 	mockgen -package mockGit -destination git/mockGit/mock_interface.go gommitizen/git GitI
 
@@ -49,6 +50,12 @@ test: tests
 tests:
 	@echo "Running tests..."
 	@go test -v ./...
+	@echo
+	@echo "Done!"
+
+coverage:
+	@echo "Running tests..."
+	@go test -v ./... --cover --coverprofile=coverage.out
 	@echo
 	@echo "Done!"
 
