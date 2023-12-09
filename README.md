@@ -143,7 +143,7 @@ To initialize the versioning of a project, run:
 gommitizen init -d <directory> -p <prefix>
 ```
 
-This will create a `.version` file in the given directory with the version `0.0.0`.
+This will create a `.version.json` file in the given directory with the version `0.0.0`.
 
 #### Bump
 
@@ -153,7 +153,7 @@ To bump the version of a project, run:
 gommitizen bump
 ```
 
-This will bump the version of all the projects in the current directory. 
+This will bump the version of all projects in the current directory.
 
 If you want to bump the version of a specific project, run:
 
@@ -163,7 +163,7 @@ gommitizen bump -d <directory>
 
 This will bump the version of the project in the given directory.
 
-if you want to bump the version of projecta and generate a changelog, run:
+if you want to bump the version of projects and generate a changelog, run:
 
 ```bash
 gommitizen bump -c
