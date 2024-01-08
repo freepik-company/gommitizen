@@ -8,14 +8,13 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "gommitizen",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Use:     "gommitizen",
+	Version: "0.3.2",
+	Short:   "A commitizen implementation for Go with multi-project support",
+	Long: `A commitizen implementation for Go with multi-project support.
+It only supports the conventional commits specification: https://www.conventionalcommits.org/en/v1.0.0/
+Currently it only supports the bump command, but it will support the commit command soon.`,
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
