@@ -1,3 +1,13 @@
+## 0.4.0 (2024-01-08)
+
+### Feat
+
+- add version command
+
+### Fix
+
+- update version
+
 ## 0.3.2 (2023-12-05)
 
 ### Fix
