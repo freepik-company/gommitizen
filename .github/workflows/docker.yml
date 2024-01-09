@@ -11,6 +11,7 @@ env:
 
 jobs:
   test:
+    name: Run tests for docker image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -28,6 +29,7 @@ jobs:
 
   build-and-push-image:
     runs-on: ubuntu-latest
+    name: Build and push Docker image
     needs: test
     permissions:
       contents: read
