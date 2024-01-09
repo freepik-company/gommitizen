@@ -190,7 +190,9 @@ func (git *Git) ConfirmChanges(files []string, commitMessage string, tagMessage 
 	for _, file := range files {
 		err = git.Add(file)
 		if err != nil {
-			return fmt.Errorf("error: the file %s could not be added: %v", file, err)
+			errMessage := "error: the file %s could not be added: %v\n\n" +
+				"\t** gommitizen must be run in the root path of the git repository\n"
+			return fmt.Errorf(errMessage, file, err)
 		}
 	}
 
