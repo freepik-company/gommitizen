@@ -22,7 +22,7 @@ jobs:
           git config --global user.name "gommitizen"
           go test -v ./...
 
-  relase:
+  release:
     name: Create release
     runs-on: ubuntu-latest
     needs: test
@@ -53,10 +53,10 @@ jobs:
               core.setFailed(error.message);
             }
 
-  releases-matrix:
-    name: Release Go Binary
+  build-matrix:
+    name: Build Binaries
     runs-on: ubuntu-latest
-    needs: relase
+    needs: release
     strategy:
       matrix:
         # build and publish in parallel: linux/amd64, linux/arm64, windows/amd64, darwin/amd64, darwin/arm64
@@ -73,7 +73,7 @@ jobs:
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           release_tag: ${{ env.RELEASE_TAG }}
-          goversion: "1.24.1"
+          goversion: "1.21.4"
           binary_name: "gommitizen-${{ matrix.goos }}-${{ matrix.goarch }}"
           extra_files: README.md
           #extra_files: LICENSE README.md
