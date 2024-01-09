@@ -1,4 +1,4 @@
-name: Tests
+name: Run tests and create a new GitHub release
 
 on:
   workflow_dispatch: {}
