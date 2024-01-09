@@ -9,7 +9,7 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:     "gommitizen",
-	Version: "0.4.4",
+	Version: "0.4.5",
 	Short:   "A commitizen implementation for Go with multi-project support",
 	Long: `A commitizen implementation for Go with multi-project support.
 It only supports the conventional commits specification: https://www.conventionalcommits.org/en/v1.0.0/
