@@ -1,4 +1,4 @@
-name: Run tests and create a new GitHub release
+name: Run tests, build and create a new GitHub release
 
 on:
   workflow_dispatch: {}
@@ -22,6 +22,11 @@ jobs:
           git config --global user.name "gommitizen"
           go test -v ./...
 
+  relase:
+    name: Create release
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
       - name: Determine tag
         run: |
           echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
@@ -29,7 +34,7 @@ jobs:
       - name: Create release
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_PAT }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             try {
               const response = await github.rest.repos.createRelease({
@@ -47,3 +52,28 @@ jobs:
             } catch (error) {
               core.setFailed(error.message);
             }
+
+  releases-matrix:
+    name: Release Go Binary
+    runs-on: ubuntu-latest
+    needs: relase
+    strategy:
+      matrix:
+        # build and publish in parallel: linux/amd64, linux/arm64, windows/amd64, darwin/amd64, darwin/arm64
+        goos: [ linux, windows, darwin ]
+        goarch: [ amd64, arm64 ]
+        exclude:
+          - goarch: arm64
+            goos: windows
+    steps:
+      - uses: actions/checkout@v3
+      - uses: wangyoucao577/go-release-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          release_tag: ${{ env.RELEASE_TAG }}
+          goversion: "1.24.1"
+          binary_name: "gommitizen-${{ matrix.goos }}-${{ matrix.goarch }}"
+          extra_files: README.md
+          #extra_files: LICENSE README.md
