@@ -156,15 +156,19 @@ func (git *Git) RetrieveData() error {
 		}
 	}
 
+	var errorMsg = "the list of modified files could not be retrieved: %v\n\n" +
+		"\t** gommitizen requires you to make an initial commit first and\n" +
+		"\t   then a conventional commit to establish a reference commit.\n"
+
 	changedFiles, err = git.getListOfModifiedFilesInGitFromAGivenCommitInDirExcludingFiles()
 	if err != nil {
-		return fmt.Errorf("error: the list of modified files could not be retrieved: %v", err)
+		return fmt.Errorf(errorMsg, err)
 	}
 	git.changedFiles = changedFiles
 
 	commitMessages, err = git.getCommitMessages()
 	if err != nil {
-		return fmt.Errorf("error: the list of commit messages could not be retrieved: %v", err)
+		return fmt.Errorf(errorMsg, err)
 	}
 	git.commitMessages = commitMessages
 
