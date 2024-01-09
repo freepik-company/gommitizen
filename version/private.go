@@ -135,8 +135,15 @@ func (version *VersionData) commitFiles() error {
 		addFiles = append(addFiles, file)
 	}
 	prj := getBaseDirFromFilePath(dirPath)
-	commitMessage := "Updated version (" + version.Version + ") in " + prj
-	tagMessage := version.Version + "_" + prj
+	var commitMessage string
+	var tagMessage string
+	if prj == "." { // root project
+		commitMessage = "Updated version (" + version.Version + ")"
+		tagMessage = version.Version
+	} else { // subproject
+		commitMessage = "Updated version (" + version.Version + ") in " + prj
+		tagMessage = version.Version + "_" + prj
+	}
 	err = version.git.ConfirmChanges(addFiles, commitMessage, tagMessage)
 	if err != nil {
 		fmt.Println("Error updating Git:", err)
