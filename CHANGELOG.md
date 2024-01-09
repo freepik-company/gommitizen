@@ -1,3 +1,10 @@
+## 0.4.1 (2024-01-09)
+
+### Fix
+
+- update commit message and tag when it's root When gommitizen it's initialized in the root of the git repository the tag message is updated to avoid concatenate a dot at the end of the tag string and set the commit to a more legible string
+- show a best error message It shows how you could fix the problem by teaching you the requierements of gommitizen about to the minimun number of commits it needs
+
 ## 0.4.0 (2024-01-08)
 
 ### Feat
