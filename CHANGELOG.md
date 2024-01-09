@@ -1,3 +1,9 @@
+## 0.4.2 (2024-01-09)
+
+### Fix
+
+- show message to run gommitizen in the root path of git
+
 ## 0.4.1 (2024-01-09)
 
 ### Fix
