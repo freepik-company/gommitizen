@@ -24,7 +24,7 @@ jobs:
 
       - name: Determine tag
         run: |
-          echo \"RELEASE_TAG=${GITHUB_REF#refs/tags/}\" >> $GITHUB_ENV"
+          echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Create release
         uses: actions/github-script@v6
