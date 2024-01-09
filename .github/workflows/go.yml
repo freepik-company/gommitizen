@@ -36,7 +36,7 @@ jobs:
           goversion: 1.21.4
           binary_name: gommitizen-linux-amd64
           sha256sum: true
-          release_tag: ${{ github.ref }}
+          release_name: gommitizen
 
   release-darwin-arm64:
     name: release darwin/arm64
@@ -52,4 +52,4 @@ jobs:
           goversion: 1.21.4
           binary_name: gommitizen-darwin-arm64
           sha256sum: true
-          release_tag: ${{ github.ref }}
+          release_name: gommitizen
