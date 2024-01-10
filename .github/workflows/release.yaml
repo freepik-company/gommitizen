@@ -75,5 +75,4 @@ jobs:
           release_tag: ${{ env.RELEASE_TAG }}
           goversion: "1.21.4"
           binary_name: "gommitizen-${{ matrix.goos }}-${{ matrix.goarch }}"
-          extra_files: README.md
-          #extra_files: LICENSE README.md
+          extra_files: LICENSE README.md
