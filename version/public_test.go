@@ -103,12 +103,42 @@ func TestVersionData_UpdateVersion(t *testing.T) {
 				"Updated version (0.0.1) in tmp",
 			}, expected: "0.0.1",
 		},
+		{
+			name: "Fix-filepath",
+			messages: []string{
+				"fix(path/file): fix bug",
+				"Updated version (0.0.1) in tmp",
+			}, expected: "0.0.1",
+		},
+		// Refactor
+		{
+			name: "Refactor",
+			messages: []string{
+				"refactor: code refactor",
+				"Updated version (0.0.1) in tmp",
+			}, expected: "0.0.1",
+		},
+		{
+			name: "Refactor-filepath",
+			messages: []string{
+				"refactor(path/to/file): code refactor",
+				"Updated version (0.0.1) in tmp",
+			}, expected: "0.0.1",
+		},
 		// Feat
 		{
 			name: "Feat",
 			messages: []string{
 				"fix: fix bug",
 				"feat: add new feature",
+				"Updated version (0.0.1) in tmp",
+			}, expected: "0.1.0",
+		},
+		{
+			name: "Feat-filepath",
+			messages: []string{
+				"fix(path/file): fix bug",
+				"feat(path/file): add new feature",
 				"Updated version (0.0.1) in tmp",
 			}, expected: "0.1.0",
 		},

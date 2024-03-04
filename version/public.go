@@ -218,6 +218,7 @@ func (version *VersionData) UpdateChangelog() error {
 	bcCommits := []string{}
 	featCommits := []string{}
 	fixCommits := []string{}
+	refactorCommits := []string{}
 	for _, msg := range version.git.GetCommitMessages() {
 		// Ignore the commit message that updates the version
 		if strings.HasPrefix(msg, "Updated version") {
@@ -237,6 +238,11 @@ func (version *VersionData) UpdateChangelog() error {
 		for _, prefix := range fixPrefix {
 			if strings.HasPrefix(msg, prefix) {
 				fixCommits = append(fixCommits, strings.TrimSpace(strings.TrimPrefix(msg, prefix)))
+			}
+		}
+		for _, prefix := range refactorPrefix {
+			if strings.HasPrefix(msg, prefix) {
+				refactorCommits = append(refactorCommits, strings.TrimSpace(strings.TrimPrefix(msg, prefix)))
 			}
 		}
 	}
