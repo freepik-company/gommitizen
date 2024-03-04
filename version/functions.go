@@ -124,6 +124,12 @@ func determineVersionBump(commitMessages []string) string {
 				break
 			}
 		}
+		for _, prefix := range refactorPrefix {
+			if strings.HasPrefix(message, prefix) {
+				patch = true
+				break
+			}
+		}
 	}
 
 	if major {

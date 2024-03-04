@@ -15,9 +15,37 @@ const DefaultCommit = "HEAD^"
 const DefaultVersionTag = "0.0.0"
 
 // Variables
-var bcPrefix = []string{"BREAKING CHANGE:", "breaking change:", "Breaking change:", "bc:", "BC:", "Bc:"}
-var featPrefix = []string{"feat:", "Feat:", "feature:", "Feature:", "FEAT"}
-var fixPrefix = []string{"fix:", "Fix:", "FIX", "bug:", "Bug:", "BUG"}
+var bcPrefix = []string{
+	"BREAKING CHANGE:", "BREAKING CHANGE(",
+	"breaking change:", "breaking change(",
+	"Breaking change:", "Breaking change(",
+	"bc:", "bc(",
+	"BC:", "BC(",
+	"Bc:", "Bc(",
+}
+var featPrefix = []string{
+	"feat:", "feat(",
+	"Feat:", "Feat(",
+	"feature:", "feature(",
+	"Feature:", "Feature(",
+	"FEAT:", "FEAT(",
+}
+var fixPrefix = []string{
+	"fix:", "fix(",
+	"Fix:", "Fix(",
+	"FIX:", "FIX(",
+	"bug:", "bug(",
+	"Bug:", "Bug(",
+	"BUG:", "BUG(",
+	"bugfix:", "bugfix(",
+	"Bugfix:", "Bugfix(",
+	"BUGFIX:", "BUGFIX(",
+}
+var refactorPrefix = []string{
+	"refactor:", "refactor(",
+	"Refactor:", "Refactor(",
+	"REFACTOR:", "REFACTOR(",
+}
 
 // VersionData Manage the version information for our project
 type VersionData struct {
