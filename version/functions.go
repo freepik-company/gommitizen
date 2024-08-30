@@ -34,6 +34,23 @@ func FindFCVersionFiles(rootDir string) ([]string, error) {
 
 // Private auxiliary functions
 
+// isARegExp checks if the given string is a literal string or a regular expression
+func isARegExp(s string) (bool, error) {
+	// Compile the regular expression
+	_, err := regexp.Compile(s)
+	if err != nil {
+		return false, err
+	}
+	// Check if the string contains any special regex characters
+	specialChars := `.*+?^${}()|[]\`
+	for _, char := range specialChars {
+		if strings.ContainsRune(s, char) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // Update the version in the files that contain it
 func updateVersionOfFiles(filePath, substring, newVersion string) error {
 	file, err := os.OpenFile(filePath, os.O_RDWR, 0644)
@@ -46,8 +63,21 @@ func updateVersionOfFiles(filePath, substring, newVersion string) error {
 	var lines []string
 
 	// Regular expression to find the version in the file
-	regularExpression := fmt.Sprintf(`(?i)\b%s\b\s*[:=]\s*([0-9]+\.[0-9]+\.[0-9]+)`, substring)
-	versionRegex := regexp.MustCompile(regularExpression)
+	regularExpression := ""
+	validRegexp, err := isARegExp(substring)
+	// Check if the substring is a regular expression that compiles
+	if err != nil {
+		return err
+	}
+	if validRegexp { // If it is a regular expression, use it as is
+		regularExpression = substring
+	} else { // If it is a literal string, use it as a word boundary
+		regularExpression = fmt.Sprintf(`(?i)\b%s\b\s*[:=]\s*([0-9]+\.[0-9]+\.[0-9]+)`, substring)
+	}
+	versionRegex, err := regexp.Compile(regularExpression)
+	if err != nil {
+		return err
+	}
 
 	for scanner.Scan() {
 		line := scanner.Text()
