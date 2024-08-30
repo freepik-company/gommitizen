@@ -209,7 +209,8 @@ The version files are structured as follows:
     "commit": "72929b90547b8527e22e402b6784e0c7f5812428",
     "version_files": [
         "Chart.yaml:version",
-        "other-version.txt:version"
+        "other-version.txt:version",
+        "a-file-that-need-a-regex.txt:^version=([0-9]+\\.[0-9]+\\.[0-9]+)$"
     ],
     "prefix": ""
 }
@@ -219,4 +220,4 @@ The `version` field contains the current version of the software. The `commit` f
 
 The `version` and `commit` fields are managed by Gommitizen. The `version_files` and `prefix` fields are managed by the user.
 
-`version_files` is a list of strings. Each string contains the path of the file and the name of the variable that contains the version. The path and the name of the variable are separated by a colon (`:`). The path is relative to the root of the project.
+`version_files` is a list of strings. Each string contains the path of the file and the name of the variable that contains the version. The path and the name of the variable are separated by a colon (`:`). The path is relative to the root of the project. Tha name of the variable can be replace by a regular expression to find the version in the file (remember to scape the special characters and group the version part of the expression with parentheses like in the example).
