@@ -13,14 +13,21 @@ import (
 // Update the Version in the files that contain it given by the parameter VersionFiles
 func (version *VersionData) updateVersionFiles(v string) error {
 	// Update every file that contains the version in VersionFiles with the new version
-	for _, file := range version.VersionFiles {
+	for _, versionFile := range version.VersionFiles {
 		// Split file into file name and variable by colon
-		fileParts := strings.Split(file, ":")
-		file := fileParts[0]
-		substring := fileParts[1]
-		err := updateVersionOfFiles(filepath.Join(version.git.GetDirPath(), file), substring, v)
+
+		index := strings.Index(versionFile, ":")
+		if index == -1 {
+			fmt.Printf("warning, `%s` is not a valid format", versionFile)
+			continue
+		}
+
+		fileName := versionFile[:index]
+		substring := versionFile[index+1:]
+
+		err := updateVersionOfFiles(filepath.Join(version.git.GetDirPath(), fileName), substring, v)
 		if err != nil {
-			return fmt.Errorf("Error updating the version in the file %s: %s", file, err)
+			return fmt.Errorf("Error updating the version in the file %s: %s", fileName, err)
 		}
 	}
 
