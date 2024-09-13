@@ -10,7 +10,7 @@ const (
 	defaultFileName = ".version.json"
 )
 
-func normalizePath(path string) (string, error) {
+func NormalizePath(path string) (string, error) {
 	if len(path) > 0 {
 		if isRelativePath(path) {
 			return toAbsolutePath(path)

@@ -17,9 +17,9 @@ type ConfigVersion struct {
 }
 
 func NewConfigVersion(path string, version string, commit string, prefix string) *ConfigVersion {
-	nPath, err := normalizePath(path)
+	nPath, err := NormalizePath(path)
 	if err != nil {
-		panic(fmt.Errorf("normalizePath %s: %v", path, err))
+		panic(fmt.Errorf("NormalizePath %s: %v", path, err))
 	}
 
 	nPrefix := prefix

@@ -9,7 +9,7 @@ import (
 func main() {
 	logger := slog.New(prettylog.NewHandler(&slog.HandlerOptions{
 		AddSource: false,
-		Level:     slog.LevelInfo,
+		Level:     slog.LevelDebug,
 	}))
 	slog.SetDefault(logger)
 

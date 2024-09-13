@@ -10,6 +10,18 @@ import (
 var (
 	argDirectory string
 	argPrefix    string
+
+	initCmd = &cobra.Command{
+		Use:   "init",
+		Short: "Start a repository to use gommitizen",
+		Run: func(cmd *cobra.Command, args []string) {
+			slog.Debug("args",
+				slog.String("directory", argDirectory),
+				slog.String("prefix", argPrefix),
+			)
+			cmdinit.Run(argDirectory, argPrefix)
+		},
+	}
 )
 
 func init() {
@@ -17,16 +29,4 @@ func init() {
 	initCmd.Flags().StringVarP(&argPrefix, "prefix", "p", "", "Select a prefix for the version file")
 
 	rootCmd.AddCommand(initCmd)
-}
-
-var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Start a repository to use gommitizen",
-	Run: func(cmd *cobra.Command, args []string) {
-		slog.Debug("args",
-			slog.String("directory", argDirectory),
-			slog.String("prefix", argPrefix),
-		)
-		cmdinit.Run(argDirectory, argPrefix)
-	},
 }
