@@ -1,4 +1,4 @@
-package version
+package config
 
 import (
 	"encoding/json"
@@ -8,13 +8,13 @@ import (
 	"testing"
 )
 
-func TestNew(t *testing.T) {
+func TestNewConfigVersion(t *testing.T) {
 	path := "/tmp"
 	version := "1.0.0"
 	commit := "abc123"
 	prefix := "v"
 
-	v := New(path, version, commit, prefix)
+	v := NewConfigVersion(path, version, commit, prefix)
 
 	if v.path != path {
 		t.Errorf("expected path %s, got %s", path, v.path)
@@ -37,7 +37,7 @@ func TestRead(t *testing.T) {
 	// Crear un archivo JSON temporal
 	tempDir := t.TempDir()
 	filePath := filepath.Join(tempDir, defaultFileName)
-	versionData := Version{
+	versionData := ConfigVersion{
 		Version:      "1.0.0",
 		Commit:       "abc123",
 		VersionFiles: []string{"file1", "file2"},
@@ -59,7 +59,7 @@ func TestRead(t *testing.T) {
 	}
 
 	// Verificar los resultados
-	expected := &Version{
+	expected := &ConfigVersion{
 		path:         tempDir,
 		Version:      "1.0.0",
 		Commit:       "abc123",

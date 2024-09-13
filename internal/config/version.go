@@ -1,4 +1,4 @@
-package version
+package config
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-type Version struct {
+type ConfigVersion struct {
 	path string
 
 	Version      string   `json:"version"`
@@ -16,29 +16,35 @@ type Version struct {
 	Prefix       string   `json:"prefix"`
 }
 
-const (
-	defaultFileName = ".version.json"
-)
+func NewConfigVersion(path string, version string, commit string, prefix string) *ConfigVersion {
+	nPath, err := normalizePath(path)
+	if err != nil {
+		panic(fmt.Errorf("normalizePath %s: %v", path, err))
+	}
 
-func New(path string, version string, commit string, prefix string) *Version {
-	return &Version{
-		path: path,
+	nPrefix := prefix
+	if len(prefix) == 0 {
+		nPrefix = filepath.Base(path)
+	}
+
+	return &ConfigVersion{
+		path: nPath,
 
 		Version:      version,
 		Commit:       commit,
 		VersionFiles: make([]string, 0),
-		Prefix:       prefix,
+		Prefix:       nPrefix,
 	}
 }
 
-func Read(path string) (*Version, error) {
+func Read(path string) (*ConfigVersion, error) {
 	fileVersionPath := filepath.Join(path, defaultFileName)
 	data, err := os.ReadFile(fileVersionPath)
 	if err != nil {
 		return nil, fmt.Errorf("read file %s: %v", fileVersionPath, err)
 	}
 
-	var version Version
+	var version ConfigVersion
 	err = json.Unmarshal(data, &version)
 	if err != nil {
 		return nil, fmt.Errorf("unmarshal json: %v", err)
@@ -48,7 +54,7 @@ func Read(path string) (*Version, error) {
 	return &version, nil
 }
 
-func (v Version) Save() error {
+func (v ConfigVersion) Save() error {
 	data, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return fmt.Errorf("parse struct to json: %v", err)
@@ -62,6 +68,6 @@ func (v Version) Save() error {
 	return nil
 }
 
-func (v Version) GetFileVersionPath() string {
+func (v ConfigVersion) GetFileVersionPath() string {
 	return filepath.Join(v.path, defaultFileName)
 }
