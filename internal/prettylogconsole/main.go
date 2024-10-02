@@ -1,11 +1,10 @@
-package prettylog
+package prettylogconsole
 
 // Ref: https://dusted.codes/creating-a-pretty-console-logger-using-gos-slog-package
 
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strconv"
@@ -31,10 +30,6 @@ const (
 	lightMagenta = 95
 	lightCyan    = 96
 	white        = 97
-)
-
-const (
-	timeFormat = "[15:04:05.000]"
 )
 
 type Handler struct {
@@ -72,56 +67,10 @@ func (h *Handler) WithGroup(name string) slog.Handler {
 }
 
 func (h *Handler) Handle(ctx context.Context, r slog.Record) error {
-
-	level := r.Level.String() + " "
-
-	switch r.Level {
-	case slog.LevelDebug:
-		level = colorize(darkGray, level)
-	case slog.LevelInfo:
-		level = colorize(cyan, level)
-	case slog.LevelWarn:
-		level = colorize(lightYellow, level)
-	case slog.LevelError:
-		level = colorize(lightRed, level)
-	}
-
-	attrs, err := h.computeAttrs(ctx, r)
-	if err != nil {
-		return err
-	}
-
-	bytes, err := json.MarshalIndent(attrs, "", "  ")
-	if err != nil {
-		return fmt.Errorf("error when marshaling attrs: %w", err)
-	}
-
 	fmt.Println(
-		colorize(lightGray, r.Time.Format(timeFormat)),
-		level,
 		colorize(white, r.Message),
-		colorize(darkGray, string(bytes)),
 	)
-
 	return nil
-}
-
-func (h *Handler) computeAttrs(ctx context.Context, r slog.Record) (map[string]any, error) {
-	h.m.Lock()
-	defer func() {
-		h.b.Reset()
-		h.m.Unlock()
-	}()
-	if err := h.h.Handle(ctx, r); err != nil {
-		return nil, fmt.Errorf("error when calling inner handler's Handle: %w", err)
-	}
-
-	var attrs map[string]any
-	err := json.Unmarshal(h.b.Bytes(), &attrs)
-	if err != nil {
-		return nil, fmt.Errorf("error when unmarshaling inner handler's Handle result: %w", err)
-	}
-	return attrs, nil
 }
 
 func colorize(colorCode int, v string) string {

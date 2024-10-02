@@ -1,3 +1,4 @@
+MAIN=cmd/gommitizen/main.go
 BINARY_NAME=gommitizen
 TAG=$(shell git describe --tags --always --dirty)
 
@@ -5,7 +6,7 @@ all: build install
 
 build:
 	@echo "Building..."
-	@go build -o bin/$(BINARY_NAME) -v
+	@go build -o bin/$(BINARY_NAME) -v $(MAIN)
 
 docker:
 	@echo "Building docker image..."
@@ -19,7 +20,7 @@ docker:
 
 install: build
 	@echo "Installing..."
-	@go install
+	@go install $(MAIN)
 	@echo
 	@echo "Done!"
 
