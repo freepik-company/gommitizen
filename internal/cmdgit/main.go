@@ -1,13 +1,14 @@
 package cmdgit
 
 import (
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os/exec"
 	"strings"
 )
 
-func GetFirstCommit(path string) (string, error) {
+func GetFirstCommit() (string, error) {
 	cmd := "git rev-list --max-parents=0 HEAD"
 	slog.Debug(fmt.Sprintf("exec: %s", cmd))
 	output, err := exec.Command("bash", "-c", cmd).Output()
@@ -17,7 +18,7 @@ func GetFirstCommit(path string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-func Add(filePath string) (string, error) {
+func AddFilePath(filePath string) (string, error) {
 	cmd := fmt.Sprintf("git add %s", filePath)
 	slog.Debug(fmt.Sprintf("exec: %s", cmd))
 	output, err := exec.Command("bash", "-c", cmd).Output()
@@ -27,7 +28,7 @@ func Add(filePath string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-func Tag(tag string) (string, error) {
+func CreateTag(tag string) (string, error) {
 	cmd := fmt.Sprintf("git tag %s", tag)
 	slog.Debug(fmt.Sprintf("exec: %s", cmd))
 	output, err := exec.Command("bash", "-c", cmd).Output()
@@ -37,7 +38,7 @@ func Tag(tag string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-func Commit(message string) (string, error) {
+func CreateCommit(message string) (string, error) {
 	cmd := fmt.Sprintf(`git commit -m "%s"`, message)
 	slog.Debug(fmt.Sprintf("exec: %s", cmd))
 	output, err := exec.Command("bash", "-c", cmd).Output()
@@ -57,18 +58,39 @@ func GetLastCommit() (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-func GetCommitMessages(fromCommit string, path string) ([]string, error) {
-	cmd := fmt.Sprintf(`git log --pretty="%%h - %%s" %s.. -- %s`, fromCommit, path)
+type Commit struct {
+	ShortCommit string `json:"short_commit"`
+	Date        string `json:"date"`
+	Title       string `json:"title"`
+
+	// TODO "message": "%s"
+	// Message string `json:"message"`
+}
+
+func GetCommits(fromCommit string, fromPath string) ([]Commit, error) {
+	pretty := `--pretty=format:'{"short_commit": "%h", "date": "%ad", "title": "%s"}'`
+	dateFormat := `--date=format-local:'%Y-%m-%dT%H:%M:%SZ'`
+	cmd := fmt.Sprintf(`git log %s %s %s.. -- %s`, pretty, dateFormat, fromCommit, fromPath)
 	slog.Debug(fmt.Sprintf("exec: %s", cmd))
+
 	output, err := exec.Command("bash", "-c", cmd).Output()
 	if err != nil {
-		return []string{}, fmt.Errorf("fail %s: %v", cmd, err)
+		return []Commit{}, fmt.Errorf("fail %s: %v", cmd, err)
 	}
-	commitMessages := make([]string, 0)
-	for _, commitMessage := range strings.Split(string(output), "\n") {
-		if len(commitMessage) > 0 {
-			commitMessages = append(commitMessages, commitMessage)
+
+	commits := make([]Commit, 0)
+	for _, line := range strings.Split(string(output), "\n") {
+		if len(line) > 0 {
+
+			var commit Commit
+			err = json.Unmarshal([]byte(line), &commit)
+			if err != nil {
+				fmt.Println("Error al deserializar el JSON:", err)
+				return []Commit{}, fmt.Errorf("fail %s: %v", cmd, err)
+			}
+
+			commits = append(commits, commit)
 		}
 	}
-	return commitMessages, nil
+	return commits, nil
 }

@@ -39,7 +39,7 @@ func initRun(dirPath, prefix string) {
 		os.Exit(1)
 	}
 
-	commit, err := cmdgit.GetFirstCommit(nDirPath)
+	commit, err := cmdgit.GetFirstCommit()
 	if err != nil {
 		slog.Error(fmt.Sprintf("first commit: %v", err))
 		os.Exit(1)

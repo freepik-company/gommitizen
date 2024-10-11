@@ -8,85 +8,6 @@ import (
 	"github.com/Masterminds/semver"
 )
 
-var bcPrefix = []string{
-	"BREAKING CHANGE:", "BREAKING CHANGE(",
-	"breaking change:", "breaking change(",
-	"Breaking change:", "Breaking change(",
-	"bc:", "bc(",
-	"BC:", "BC(",
-	"Bc:", "Bc(",
-}
-var featPrefix = []string{
-	"feat:", "feat(",
-	"Feat:", "Feat(",
-	"feature:", "feature(",
-	"Feature:", "Feature(",
-	"FEAT:", "FEAT(",
-}
-var fixPrefix = []string{
-	"fix:", "fix(",
-	"Fix:", "Fix(",
-	"FIX:", "FIX(",
-	"bug:", "bug(",
-	"Bug:", "Bug(",
-	"BUG:", "BUG(",
-	"bugfix:", "bugfix(",
-	"Bugfix:", "Bugfix(",
-	"BUGFIX:", "BUGFIX(",
-}
-var refactorPrefix = []string{
-	"refactor:", "refactor(",
-	"Refactor:", "Refactor(",
-	"REFACTOR:", "REFACTOR(",
-}
-
-func DetermineVersionBump(commitMessages []string) string {
-	major := false
-	minor := false
-	patch := false
-
-	for _, message := range commitMessages {
-		ignoreStartLen := 10
-		if strings.HasPrefix(message[ignoreStartLen:], "Updated version") {
-			continue
-		}
-		for _, prefix := range bcPrefix {
-			if strings.HasPrefix(message[ignoreStartLen:], prefix) {
-				major = true
-				break
-			}
-		}
-		for _, prefix := range featPrefix {
-			if strings.HasPrefix(message[ignoreStartLen:], prefix) {
-				minor = true
-				break
-			}
-		}
-		for _, prefix := range fixPrefix {
-			if strings.HasPrefix(message[ignoreStartLen:], prefix) {
-				patch = true
-				break
-			}
-		}
-		for _, prefix := range refactorPrefix {
-			if strings.HasPrefix(message[ignoreStartLen:], prefix) {
-				patch = true
-				break
-			}
-		}
-	}
-
-	if major {
-		return "major"
-	} else if minor {
-		return "minor"
-	} else if patch {
-		return "patch"
-	}
-
-	return "none"
-}
-
 func IncrementVersion(currentVersionStr string, incType string) (string, string, error) {
 	currentVersion, err := semver.NewVersion(currentVersionStr)
 	if err != nil {
@@ -125,19 +46,19 @@ func BumpCommitAll(modifiedFiles []string, tagVersions []string) ([]string, erro
 	}
 
 	for _, filePath := range modifiedFiles {
-		_, err := cmdgit.Add(filePath)
+		_, err := cmdgit.AddFilePath(filePath)
 		if err != nil {
 			return nil, fmt.Errorf("error adding file %s: %v", filePath, err)
 		}
 	}
 
-	_, err := cmdgit.Commit(message)
+	_, err := cmdgit.CreateCommit(message)
 	if err != nil {
 		return nil, fmt.Errorf("error committing %s: %v", message, err)
 	}
 
 	for _, tagVersion := range tagVersions {
-		_, err := cmdgit.Tag(tagVersion)
+		_, err := cmdgit.CreateTag(tagVersion)
 		if err != nil {
 			return nil, fmt.Errorf("error tagging %s: %v", tagVersion, err)
 		}

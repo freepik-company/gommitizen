@@ -3,8 +3,10 @@ package cmd
 import (
 	"fmt"
 	"gommitizen/internal/bumpmanager"
+	"gommitizen/internal/changelog"
 	"gommitizen/internal/cmdgit"
 	"gommitizen/internal/config"
+	"gommitizen/internal/conventionalcommits"
 	"log/slog"
 	"os"
 	"strings"
@@ -17,9 +19,9 @@ var (
 )
 
 type bumpOpts struct {
-	directory     string
-	changelog     bool
-	incrementType string
+	directory       string
+	createChangelog bool
+	incrementType   string
 }
 
 func Bump() *cobra.Command {
@@ -29,13 +31,13 @@ func Bump() *cobra.Command {
 		Use:   "bump",
 		Short: "Make a version bump",
 		Run: func(cmd *cobra.Command, args []string) {
-			bumpRun(opts.directory, opts.changelog, strings.ToLower(opts.incrementType))
+			bumpRun(opts.directory, opts.createChangelog, strings.ToLower(opts.incrementType))
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.directory, "directory", "d", "", "Select a project directory to bump")
-	cmd.Flags().BoolVarP(&opts.changelog, "changelog", "c", false, "Create CHANGELOG.md")
-	cmd.Flags().StringVarP(&opts.incrementType, "increment", "i", "", "Increment version (MAJOR, MINOR, PATCH)")
+	cmd.Flags().StringVarP(&opts.directory, "directory", "d", "", "select a project directory to bump")
+	cmd.Flags().BoolVarP(&opts.createChangelog, "changelog", "c", false, "generate the changelog for the newest version")
+	cmd.Flags().StringVarP(&opts.incrementType, "increment", "i", "", "manually specify the desired increment {MAYOR, MINOR, PATCH}")
 
 	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
 		increment, _ := cmd.Flags().GetString("increment")
@@ -57,7 +59,7 @@ func Bump() *cobra.Command {
 	return cmd
 }
 
-func bumpRun(dirPath string, changelog bool, incrementType string) {
+func bumpRun(dirPath string, createChangelog bool, incrementType string) {
 	if incrementType != "" {
 		slog.Info(fmt.Sprintf("Bumping version with increment: %s", incrementType))
 	}
@@ -77,7 +79,7 @@ func bumpRun(dirPath string, changelog bool, incrementType string) {
 	allModifiedFiles := make([]string, 0)
 	allTagVersions := make([]string, 0)
 	for _, configVersionPath := range configVersionPaths {
-		modifiedFiles, tagVersion, err := bumpByConfig(configVersionPath, changelog, incrementType)
+		modifiedFiles, tagVersion, err := bumpByConfig(configVersionPath, createChangelog, incrementType)
 		if err != nil {
 			slog.Error(fmt.Sprintf("bump by config: %v", err))
 			os.Exit(1)
@@ -97,7 +99,7 @@ func bumpRun(dirPath string, changelog bool, incrementType string) {
 	slog.Info(strings.Join(output, "\n"))
 }
 
-func bumpByConfig(configVersionPath string, changelog bool, incrementType string) ([]string, string, error) {
+func bumpByConfig(configVersionPath string, createChangelog bool, incrementType string) ([]string, string, error) {
 	config, err := config.ReadConfigVersion(configVersionPath)
 	if err != nil {
 		slog.Info(fmt.Sprintf("Skipping file: %s, %v", configVersionPath, err))
@@ -109,12 +111,14 @@ func bumpByConfig(configVersionPath string, changelog bool, incrementType string
 
 	slog.Info(fmt.Sprintf("Running bump in project %s", config.GetDirPath()))
 
-	commitMessages, err := cmdgit.GetCommitMessages(config.Commit, config.GetDirPath())
+	gitCommits, err := cmdgit.GetCommits(config.Commit, config.GetDirPath())
+	cvCommits := conventionalcommits.FilterAndParse(gitCommits)
+
 	if err != nil {
 		return []string{}, "", fmt.Errorf("commit messages: %s", err)
 	}
 	if incrementType == "" {
-		incrementType = bumpmanager.DetermineVersionBump(commitMessages)
+		incrementType = conventionalcommits.DetermineIncrementType(cvCommits)
 	}
 
 	// If the file has been modified, update the version
@@ -136,15 +140,17 @@ func bumpByConfig(configVersionPath string, changelog bool, incrementType string
 			return []string{}, "", fmt.Errorf("update version: %s", err)
 		}
 
-		if changelog {
-			// Update the CHANGELOG.md file
-			// modifiedFiles = append(modifiedFiles, "ruta changelog")
-			slog.Debug("TODO")
+		if createChangelog {
+			changelogFilePath, err := changelog.Apply(config.GetDirPath(), config.Version, cvCommits)
+			if err != nil {
+				return []string{}, "", fmt.Errorf("update changelog: %s", err)
+			}
+			modifiedFiles = append(modifiedFiles, changelogFilePath)
 		}
 
 		slog.Info("Commit messages:")
-		for _, message := range commitMessages {
-			slog.Info(fmt.Sprintf(" - %s", message))
+		for _, commit := range cvCommits {
+			slog.Info(fmt.Sprintf(" - %s", commit))
 		}
 
 		slog.Info("Updated files:")
