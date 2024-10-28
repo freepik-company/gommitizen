@@ -35,14 +35,7 @@ func IncrementVersion(currentVersionStr string, incType string) (string, string,
 
 func BumpCommitAll(modifiedFiles []string, tagVersions []string) ([]string, error) {
 	if len(modifiedFiles) == 0 && len(tagVersions) == 0 {
-		return []string{
-			"Nothing to commit",
-		}, nil
-	}
-
-	message := fmt.Sprintf("Updated version (%s)", tagVersions[0])
-	if len(tagVersions) > 1 {
-		message = fmt.Sprintf("Updated version (%s)", strings.Join(tagVersions, ", "))
+		return []string{"Nothing to commit"}, nil
 	}
 
 	for _, filePath := range modifiedFiles {
@@ -50,6 +43,11 @@ func BumpCommitAll(modifiedFiles []string, tagVersions []string) ([]string, erro
 		if err != nil {
 			return nil, fmt.Errorf("error adding file %s: %v", filePath, err)
 		}
+	}
+
+	message := fmt.Sprintf("bump: new version %s", tagVersions[0])
+	if len(tagVersions) > 1 {
+		message = fmt.Sprintf("bump: new versions %s", strings.Join(tagVersions, ", "))
 	}
 
 	_, err := cmdgit.CreateCommit(message)
@@ -64,7 +62,5 @@ func BumpCommitAll(modifiedFiles []string, tagVersions []string) ([]string, erro
 		}
 	}
 
-	return []string{
-		"Files added and committed",
-	}, nil
+	return []string{"Files added and committed"}, nil
 }

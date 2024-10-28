@@ -3,67 +3,72 @@ package conventionalcommits
 import (
 	"fmt"
 	"gommitizen/internal/cmdgit"
+	"log/slog"
 	"regexp"
+	"strings"
+	"time"
 )
 
 // https://www.conventionalcommits.org/en/v1.0.0/
 
-var bcPrefix = []string{
-	"BREAKING CHANGE:", "BREAKING CHANGE(",
-	"breaking change:", "breaking change(",
-	"Breaking change:", "Breaking change(",
-	"bc:", "bc(",
-	"BC:", "BC(",
-	"Bc:", "Bc(",
-}
-var featPrefix = []string{
-	"feat:", "feat(",
-	"Feat:", "Feat(",
-	"feature:", "feature(",
-	"Feature:", "Feature(",
-	"FEAT:", "FEAT(",
-}
-var fixPrefix = []string{
-	"fix:", "fix(",
-	"Fix:", "Fix(",
-	"FIX:", "FIX(",
-	"bug:", "bug(",
-	"Bug:", "Bug(",
-	"BUG:", "BUG(",
-	"bugfix:", "bugfix(",
-	"Bugfix:", "Bugfix(",
-	"BUGFIX:", "BUGFIX(",
-}
-var refactorPrefix = []string{
-	"refactor:", "refactor(",
-	"Refactor:", "Refactor(",
-	"REFACTOR:", "REFACTOR(",
+type ChangeType struct {
+	Order      int
+	CommonName string
+	Prefixes   []string
 }
 
 type ConventionalCommit struct {
-	ShortCommit string
-	Date        string
+	ShortHash string
+	Hash      string
+	Date      time.Time
 
-	Type        string
-	Scope       string
-	Description string
+	CommonChangeType string
+	ChangeType       string
+	Scope            string
+	Subject          string
 }
+
+var (
+	commonNameBC       = "Breaking changes"
+	commonNameFeat     = "Features"
+	commonNameFix      = "Bug Fixes"
+	commonNameRefactor = "Miscellaneous"
+
+	changeTypes = []ChangeType{
+		{
+			CommonName: commonNameBC,
+			Prefixes:   []string{"bc", "breaking change"},
+		},
+		{
+			CommonName: commonNameFeat,
+			Prefixes:   []string{"feat", "feature"},
+		},
+		{
+			CommonName: commonNameFix,
+			Prefixes:   []string{"fix", "bug", "bugfix"},
+		},
+		{
+			CommonName: commonNameRefactor,
+			Prefixes:   []string{"refactor", "perf", "performance", "test", "tests", "chore", "ci", "build", "docs", "style"},
+		},
+	}
+)
 
 func (cc ConventionalCommit) String() string {
 	if cc.Scope == "" {
-		return fmt.Sprintf("%s: %s #%s", cc.Type, cc.Description, cc.ShortCommit)
+		return fmt.Sprintf("%s: %s #%s", cc.ChangeType, cc.Subject, cc.ShortHash)
 	} else {
-		return fmt.Sprintf("%s(%s): %s #%s", cc.Type, cc.Scope, cc.Description, cc.ShortCommit)
+		return fmt.Sprintf("%s(%s): %s #%s", cc.ChangeType, cc.Scope, cc.Subject, cc.ShortHash)
 	}
 }
 
-func FilterAndParse(commits []cmdgit.Commit) []ConventionalCommit {
-	conventionalcommits := make([]ConventionalCommit, 0)
+func ReadConventionalCommits(commits []cmdgit.Commit) []ConventionalCommit {
+	cvcommits := make([]ConventionalCommit, 0)
 	for _, commit := range commits {
-
-		re := regexp.MustCompile(`(?P<type>\w+)(\((?P<scope>\w+)\))?:(?P<message>.+)`)
-		match := re.FindStringSubmatch(commit.Title)
+		re := regexp.MustCompile(`(?P<change_type>\w+)(\((?P<scope>\w+)\))?:\s*(?P<subject>.+?)\s*$`)
+		match := re.FindStringSubmatch(commit.Subject)
 		if match == nil {
+			slog.Debug(fmt.Sprintf("ignore commit, no cc by pattern: %s", commit.Subject))
 			continue
 		}
 
@@ -74,58 +79,60 @@ func FilterAndParse(commits []cmdgit.Commit) []ConventionalCommit {
 			}
 		}
 
-		cc := ConventionalCommit{
-			ShortCommit: commit.ShortCommit,
-			Date:        commit.Date,
-
-			Type:        result["type"],
-			Scope:       result["scope"],
-			Description: result["message"],
+		commonChangeType := determinateCommonChangeType(result["change_type"])
+		if commonChangeType == "unknown" {
+			slog.Debug(fmt.Sprintf("ignore commit, no cc by common: %s", result["change_type"]))
+			continue
 		}
-		conventionalcommits = append(conventionalcommits, cc)
+
+		cc := ConventionalCommit{
+			ShortHash: commit.AbbreviationHash(),
+			Hash:      string(commit.Hash),
+			Date:      time.Time(commit.Date),
+
+			CommonChangeType: commonChangeType,
+			ChangeType:       result["change_type"],
+			Scope:            result["scope"],
+			Subject:          result["subject"],
+		}
+
+		slog.Debug(fmt.Sprintf("cccommit: %v", cc))
+		cvcommits = append(cvcommits, cc)
 	}
-	return conventionalcommits
+	return cvcommits
 }
 
-func DetermineIncrementType(conventionalCommits []ConventionalCommit) string {
-	major := false
-	minor := false
-	patch := false
-
-	for _, cc := range conventionalCommits {
-		for _, prefix := range bcPrefix {
-			if cc.Type == prefix {
-				major = true
-				break
-			}
-		}
-		for _, prefix := range featPrefix {
-			if cc.Type == prefix {
-				minor = true
-				break
-			}
-		}
-		for _, prefix := range fixPrefix {
-			if cc.Type == prefix {
-				patch = true
-				break
-			}
-		}
-		for _, prefix := range refactorPrefix {
-			if cc.Type == prefix {
-				patch = true
-				break
+func determinateCommonChangeType(changeType string) string {
+	for _, ct := range changeTypes {
+		for _, prefix := range ct.Prefixes {
+			if strings.ToLower(changeType) == prefix {
+				return ct.CommonName
 			}
 		}
 	}
+	return "unknown"
+}
 
-	if major {
-		return "major"
-	} else if minor {
+func DetermineIncrementType(commits []ConventionalCommit) string {
+	var hasMinor, hasPatch bool
+
+	for _, commit := range commits {
+		switch commit.CommonChangeType {
+		case commonNameBC:
+			return "major"
+		case commonNameFeat:
+			hasMinor = true
+		case commonNameFix, commonNameRefactor:
+			hasPatch = true
+		}
+	}
+
+	switch {
+	case hasMinor:
 		return "minor"
-	} else if patch {
+	case hasPatch:
 		return "patch"
+	default:
+		return "none"
 	}
-
-	return "none"
 }

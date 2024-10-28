@@ -67,8 +67,21 @@ func (h *Handler) WithGroup(name string) slog.Handler {
 }
 
 func (h *Handler) Handle(ctx context.Context, r slog.Record) error {
+	color := white
+
+	switch r.Level {
+	case slog.LevelDebug:
+		color = lightGreen
+	case slog.LevelInfo:
+		color = 0
+	case slog.LevelWarn:
+		color = lightYellow
+	case slog.LevelError:
+		color = lightRed
+	}
+
 	fmt.Println(
-		colorize(white, r.Message),
+		colorize(color, r.Message),
 	)
 	return nil
 }

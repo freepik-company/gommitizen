@@ -58,17 +58,9 @@ func GetLastCommit() (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-type Commit struct {
-	ShortCommit string `json:"short_commit"`
-	Date        string `json:"date"`
-	Title       string `json:"title"`
-
-	// TODO "message": "%s"
-	// Message string `json:"message"`
-}
-
+// https://git-scm.com/docs/pretty-formats
 func GetCommits(fromCommit string, fromPath string) ([]Commit, error) {
-	pretty := `--pretty=format:'{"short_commit": "%h", "date": "%ad", "title": "%s"}'`
+	pretty := `--pretty=format:'{"hash": "%H", "date": "%ad", "subject": "%s"}'`
 	dateFormat := `--date=format-local:'%Y-%m-%dT%H:%M:%SZ'`
 	cmd := fmt.Sprintf(`git log %s %s %s.. -- %s`, pretty, dateFormat, fromCommit, fromPath)
 	slog.Debug(fmt.Sprintf("exec: %s", cmd))
@@ -85,10 +77,10 @@ func GetCommits(fromCommit string, fromPath string) ([]Commit, error) {
 			var commit Commit
 			err = json.Unmarshal([]byte(line), &commit)
 			if err != nil {
-				fmt.Println("Error al deserializar el JSON:", err)
-				return []Commit{}, fmt.Errorf("fail %s: %v", cmd, err)
+				return []Commit{}, fmt.Errorf("fail unmarshal json %s: %v", cmd, err)
 			}
 
+			slog.Debug(fmt.Sprintf("commit: %v", commit))
 			commits = append(commits, commit)
 		}
 	}

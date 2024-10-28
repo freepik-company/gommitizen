@@ -112,8 +112,7 @@ func bumpByConfig(configVersionPath string, createChangelog bool, incrementType 
 	slog.Info(fmt.Sprintf("Running bump in project %s", config.GetDirPath()))
 
 	gitCommits, err := cmdgit.GetCommits(config.Commit, config.GetDirPath())
-	cvCommits := conventionalcommits.FilterAndParse(gitCommits)
-
+	cvCommits := conventionalcommits.ReadConventionalCommits(gitCommits)
 	if err != nil {
 		return []string{}, "", fmt.Errorf("commit messages: %s", err)
 	}
