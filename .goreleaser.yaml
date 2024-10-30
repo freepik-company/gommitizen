@@ -1,0 +1,46 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: gommitizen
+    binary: gommitizen
+    main: ./cmd/gommitizen
+    ldflags:
+      - "-X github.com/freepikcompany/gommitizen/internal/version.version={{.Version}}"
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+
+archives:
+  - format: binary
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    builds:
+      - ai-commit
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+release:
+  github:
+    owner: freepikcommpany
+    name: gommitizen
+  draft: false
+  prerelease: false
+
+dockers:
+  - image_templates:
+      - "ghcr.io/freepikcompany/gommitizen:{{ .Version }}"
+      - "ghcr.io/freepikcompany/gommitizen:latest"
+    dockerfile: build/gommitizen/Dockerfile
+    build_flag_templates:
+      - "--build-arg=APP_VERSION={{.Version}}"
