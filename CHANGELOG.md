@@ -1,3 +1,10 @@
+## 0.6.1 (2024-10-30)
+
+### Refactor
+
+- **myFile.go**: Refactor function for improved readability and maintainability
+- **go.mod**: Update module path to github.com/freepik-company/gommitizen
+
 ## 0.6.0 (2024-10-30)
 
 ## 0.5.2 (2024-09-03)
