@@ -9,7 +9,7 @@ builds:
     binary: gommitizen
     main: ./cmd/gommitizen
     ldflags:
-      - "-X github.com/freepikcompany/gommitizen/internal/version.version={{.Version}}"
+      - "-X github.com/freepik-company/gommitizen/internal/version.version={{.Version}}"
     env:
       - CGO_ENABLED=0
     goos:
@@ -39,8 +39,8 @@ release:
 
 dockers:
   - image_templates:
-      - "ghcr.io/freepikcompany/gommitizen:{{ .Version }}"
-      - "ghcr.io/freepikcompany/gommitizen:latest"
+      - "ghcr.io/freepik-company/gommitizen:{{ .Version }}"
+      - "ghcr.io/freepik-company/gommitizen:latest"
     dockerfile: build/gommitizen/Dockerfile
     build_flag_templates:
       - "--build-arg=APP_VERSION={{.Version}}"
