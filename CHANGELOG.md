@@ -1,3 +1,9 @@
+## 0.6.3 (2024-10-30)
+
+### Refactor
+
+- **.goreleaser.yaml**: Update build process using gommitizen, remove ai-commit, create Docker images and modify build flags
+
 ## 0.6.2 (2024-10-30)
 
 ### Refactor
