@@ -3,7 +3,7 @@
 set -e
 
 # Usage:
-# curl -s https://raw.githubusercontent.com/freepikcompany/gommitizen/main/scripts/get-gommitizen.sh | sudo bash
+# curl -s https://raw.githubusercontent.com/freepik-company/gommitizen/main/scripts/get-gommitizen.sh | sudo bash
 
 REPO="freepik-company/gommitizen"
 INSTALL_DIR="/usr/local/bin"
