@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"gommitizen/internal/conventionalcommits"
 	"html/template"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/freepik-company/gommitizen/internal/conventionalcommits"
 )
 
 type data struct {

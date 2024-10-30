@@ -2,16 +2,17 @@ package cmd
 
 import (
 	"fmt"
-	"gommitizen/internal/bumpmanager"
-	"gommitizen/internal/changelog"
-	"gommitizen/internal/cmdgit"
-	"gommitizen/internal/config"
-	"gommitizen/internal/conventionalcommits"
 	"log/slog"
 	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
+
+	"github.com/freepik-company/gommitizen/internal/bumpmanager"
+	"github.com/freepik-company/gommitizen/internal/changelog"
+	"github.com/freepik-company/gommitizen/internal/cmdgit"
+	"github.com/freepik-company/gommitizen/internal/config"
+	"github.com/freepik-company/gommitizen/internal/conventionalcommits"
 )
 
 var (

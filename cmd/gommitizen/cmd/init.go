@@ -2,12 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"gommitizen/internal/cmdgit"
-	"gommitizen/internal/config"
 	"log/slog"
 	"os"
 
 	"github.com/spf13/cobra"
+
+	"github.com/freepik-company/gommitizen/internal/cmdgit"
+	"github.com/freepik-company/gommitizen/internal/config"
 )
 
 type initOpts struct {

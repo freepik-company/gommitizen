@@ -2,11 +2,12 @@ package conventionalcommits
 
 import (
 	"fmt"
-	"gommitizen/internal/cmdgit"
 	"log/slog"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/freepik-company/gommitizen/internal/cmdgit"
 )
 
 // https://www.conventionalcommits.org/en/v1.0.0/

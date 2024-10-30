@@ -1,13 +1,14 @@
 package main
 
 import (
-	"gommitizen/cmd/gommitizen/cmd"
-	"gommitizen/internal/prettylogconsole"
-	"gommitizen/internal/version"
 	"log/slog"
 	"os"
 
 	"github.com/spf13/cobra"
+
+	"github.com/freepik-company/gommitizen/cmd/gommitizen/cmd"
+	"github.com/freepik-company/gommitizen/internal/prettylogconsole"
+	"github.com/freepik-company/gommitizen/internal/version"
 )
 
 type rootOpts struct {

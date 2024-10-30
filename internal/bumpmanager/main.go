@@ -2,10 +2,11 @@ package bumpmanager
 
 import (
 	"fmt"
-	"gommitizen/internal/cmdgit"
 	"strings"
 
 	"github.com/Masterminds/semver"
+
+	"github.com/freepik-company/gommitizen/internal/cmdgit"
 )
 
 func IncrementVersion(currentVersionStr string, incType string) (string, string, error) {
