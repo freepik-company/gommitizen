@@ -214,3 +214,7 @@ Then push the tag to the repository:
 ```bash
 git push && git push --tags
 ```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
