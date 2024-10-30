@@ -87,7 +87,7 @@ docker run --rm \
   -e GIT_USER_NAME=user.name \
   -e GIT_USER_EMAIL=user@email \
   -v $(pwd):/source \
-  ghcr.io/freepikcompany/gommitizen:<tag> [flags]
+  ghcr.io/freepik-company/gommitizen:<tag> [flags]
 ```
 
 Replace  `<tag>` with the tag of the image you want to use. Select the command and flags you want to use.
