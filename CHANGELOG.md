@@ -1,3 +1,9 @@
+## 0.6.2 (2024-10-30)
+
+### Refactor
+
+- **.goreleaser.yaml**: Update GitHub repository owner, set CGO_ENABLED to 0 for all builds, correct version export in gommitizen binary, update Docker image templates and build flags
+
 ## 0.6.1 (2024-10-30)
 
 ### Refactor
