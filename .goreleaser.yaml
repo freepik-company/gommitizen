@@ -32,7 +32,7 @@ changelog:
 
 release:
   github:
-    owner: freepikcommpany
+    owner: freepik-commpany
     name: gommitizen
   draft: false
   prerelease: false
