@@ -1,78 +1,39 @@
-name: Run tests, build and create a new GitHub release
+# .github/workflows/release.yml
+name: Make Release on Tag Push
 
 on:
   push:
-    tags: '[0-9].[0-9].[0-9]'
+    tags:
+      - '*.*.*'  # Simple semantic version v1.2.3
 
 jobs:
-  test:
-    name: Run tests for binaries
+  release:
+    name: Publish Release
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
 
-      - name: Set up Go
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Go configuration
         uses: actions/setup-go@v4
         with:
-          go-version: '1.21.4'
+          go-version: '1.22'
 
-      - name: Test
-        run: |
-          git config --global user.email "gommitizen@localhost"
-          git config --global user.name "gommitizen"
-          go test -v ./...
-
-  release:
-    name: Create release
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Determine tag
-        run: |
-          echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: Create release
-        uses: actions/github-script@v6
+      - name: Docker Login
+        uses: docker/login-action@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            try {
-              const response = await github.rest.repos.createRelease({
-                draft: false,
-                generate_release_notes: true,
-                name: process.env.RELEASE_TAG,
-                owner: context.repo.owner,
-                prerelease: false,
-                repo: context.repo.repo,
-                tag_name: process.env.RELEASE_TAG,
-              });
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GH_PAT }}
 
-              core.exportVariable('RELEASE_ID', response.data.id);
-              core.exportVariable('RELEASE_UPLOAD_URL', response.data.upload_url);
-            } catch (error) {
-              core.setFailed(error.message);
-            }
-
-  build-matrix:
-    name: Build Binaries
-    runs-on: ubuntu-latest
-    needs: release
-    strategy:
-      matrix:
-        # build and publish in parallel: linux/amd64, linux/arm64, windows/amd64, darwin/amd64, darwin/arm64
-        goos: [ linux, windows, darwin ]
-        goarch: [ amd64, arm64 ]
-        exclude:
-          - goarch: arm64
-            goos: windows
-    steps:
-      - uses: actions/checkout@v3
-      - uses: wangyoucao577/go-release-action@v1
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
-          release_tag: ${{ env.RELEASE_TAG }}
-          goversion: "1.21.4"
-          binary_name: "gommitizen-${{ matrix.goos }}-${{ matrix.goarch }}"
-          extra_files: LICENSE README.md
+          version: latest
+          distribution: goreleaser
+          workdir: .
+          install-only: false
+          args: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
