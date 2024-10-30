@@ -126,12 +126,14 @@ The following flags are available for the `bump` command:
 To run Gommitizen in a Docker container, run:
 
 ```bash
-docker run \
-  -v <directory>:/code \
-  gommitizen:<tag> <command> [flags]
+docker run --rm \
+  -e GIT_USER_NAME=user.name \
+  -e GIT_USER_EMAIL=user@email \
+  -v $(pwd):/source \
+  ghcr.io/freepikcompany/gommitizen:<tag> [flags]
 ```
 
-Replace  `<tag>` with the tag of the image you want to use. Replace `<directory>` with the directory where the project is located. Select the command and flags you want to use.
+Replace  `<tag>` with the tag of the image you want to use. Select the command and flags you want to use.
 
 ### Examples
 
