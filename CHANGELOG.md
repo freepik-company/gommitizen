@@ -1,3 +1,9 @@
+## 0.6.4 (2024-10-30)
+
+### Fix
+
+- **.goreleaser.yaml**: Update GoReleaser configuration - Set owner, adjust builds, and add Docker images.
+
 ## 0.6.3 (2024-10-30)
 
 ### Refactor
