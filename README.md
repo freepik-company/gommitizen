@@ -180,3 +180,37 @@ The `version` field contains the current version of the software. The `commit` f
 The `version` and `commit` fields are managed by Gommitizen. The `version_files` and `prefix` fields are managed by the user.
 
 `version_files` is a list of strings. Each string contains the path of the file and the name of the variable that contains the version. The path and the name of the variable are separated by a colon (`:`). The path is relative to the root of the project. Tha name of the variable can be replace by a regular expression to find the version in the file (remember to scape the special characters and group the version part of the expression with parentheses like in the example).
+
+## Development
+
+To run the project in development mode, run:
+
+```bash
+go run ./cmd/gommitizen/main.go
+```
+
+To run a new release locally, run:
+
+```bash
+make release
+```
+
+If you want to run the release in pipeline, run:
+
+```bash
+make bump
+```
+
+to bump the version of the project and changelog. Then push the changes and tag to the repository to trigger the pipeline. That will generate the release and publish the binaries and docker image.
+
+If you want to increase the version manually, run:
+
+```bash
+cz bump --increment (MAJOR|MINOR|PATCH) --changelog
+```
+
+Then push the tag to the repository:
+
+```bash
+git push && git push --tags
+```
