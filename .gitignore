@@ -22,3 +22,11 @@ bin/
 
 # sonnarqube
 .scannerwork/
+
+# playground
+playground/
+
+# Build
+bin/
+dist/
+
