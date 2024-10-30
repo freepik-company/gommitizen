@@ -10,7 +10,7 @@ Version information is stored in a `VersionData` structure, which includes the c
 
 To install **gommitizen**, run the following command:
 ```bash 
-curl -s https://raw.githubusercontent.com/freepikcompany/gommitizen/main/scripts/get-gommitizen.sh | sudo bash
+curl -s https://raw.githubusercontent.com/freepik-company/gommitizen/main/scripts/get-gommitizen.sh | sudo bash
 ```
 
 This script will download the latest release of the **gommitizen** binary and install it in the `/usr/local/bin` directory.
