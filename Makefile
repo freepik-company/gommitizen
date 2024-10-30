@@ -1,66 +1,37 @@
-BINARY_NAME=gommitizen
-TAG=$(shell git describe --tags --always --dirty)
+.PHONY: help bin install uninstall release test-release git-add-extension new-version clean
 
-all: build install
+CURRENT_VERSION := $(shell git describe --tags --abbrev=0)
 
-build:
-	@echo "Building..."
-	@go build -o bin/$(BINARY_NAME) -v
+help:
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "Common targets:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-docker:
-	@echo "Building docker image..."
-	@docker build -t $(BINARY_NAME):$(TAG) .
-	@echo
-	@echo "Done!"
-	@echo "May the docker be with you..."
-	@echo
-	@echo "  # docker run -it $(BINARY_NAME):$(TAG) help"
-	@echo
+bin: ./bin/gommitizen ## Build go application
 
-install: build
-	@echo "Installing..."
-	@go install
-	@echo
-	@echo "Done!"
+./bin/gommitizen: ./cmd/gommitizen/main.go
+	go build \
+		-ldflags "-X github.com/freepikcompany/gommitizen/internal/version.version=${CURRENT_VERSION}" \
+		-o $@ $<
 
-scan: start-sonar
-	@echo "Scanning..."
-	@curl -X POST -u admin:admin 'http://localhost:9000/api/users/create?login=user&password=password&name=user'
-	@sonar-scanner \
-		-Dsonar.projectKey=${BINARY_NAME} \
-		-Dsonar.sources=. \
-		-Dsonar.host.url=http://localhost:9000 \
-		-Dsonar.login=user \
-		-Dsonar.password=password
-	@golangci-lint run
-	@echo
-	@echo "Done!"
+install: bin /usr/local/bin/gommitizen ## Install gommitizen
 
-start-sonar:
-	@docker-compose up -d --wait sonarqube
+/usr/local/bin/gommitizen:
+	cp ./bin/gommitizen /usr/local/bin/gommitizen
 
-stop-sonar:
-	@docker-compose down
+uninstall:  ## Uninstall gommitizen
+	rm /usr/local/bin/gommitizen
 
-mocks: regenerate_mocks
-regenerate_mocks:
-	mockgen -package mockGit -destination git/mockGit/mock_interface.go gommitizen/git GitI
+bump: ## Bump version using commitizen
+	cz bump
 
-test: tests
-tests:
-	@echo "Running tests..."
-	@go test -v ./...
-	@echo
-	@echo "Done!"
+release: ## Release new version
+	goreleaser release
 
-coverage:
-	@echo "Running tests..."
-	@go test -v ./... --cover --coverprofile=coverage.out
-	@echo
-	@echo "Done!"
+test-release: ## Test release new version
+	goreleaser release --snapshot
 
-clean: stop-sonar
-	@echo "Cleaning..."
-	@rm -rf bin/*
-	@echo
-	@echo "Done!"
+clean: ## Clean up
+	rm -rf ./bin
+	rm -rf ./dist

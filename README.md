@@ -6,81 +6,38 @@ The tool analyzes commit messages in a Git repository, looking for certain prefi
 
 Version information is stored in a `VersionData` structure, which includes the current version, the current commit, and a list of version files. This information can be used to generate a changelog, determine the next version of the software, or perform other tasks related to version management.
 
+## Installation
+
+To install **gommitizen**, run the following command:
+```bash 
+curl -s https://raw.githubusercontent.com/freepikcompany/gommitizen/main/scripts/get-gommitizen.sh | sudo bash
+```
+
+This script will download the latest release of the **gommitizen** binary and install it in the `/usr/local/bin` directory.
+
+To verify the installation, run the following command:
+
+```bash
+gommitizen --version
+```
+
+You should see the version of **gommitizen** that you installed.
+
 ## Compilation
 
 To compile the project, run the following command:
 
 ```bash
-make build
+make bin
 ```
 
 This will generate a binary in the `bin/` directory.
 
-## Docker
-
-You can build a Docker image of Gommitizen with the following command:
-
 ```bash
-make docker
+make install 
 ```
 
-After building the image, you can run it with:
-
-```bash
-docker run -it gommitizen:<tag> help
-```
-
-Replace `<tag>` with the tag of the image you have built.
-
-## Installation
-
-To install Gommitizen in your `$GOPATH`, first build the project with `make build`, then run:
-
-```bash
-make install
-```
-
-_*TODO*: Hombrew install_
-
-## Code Analysis with SonarQube
-
-To start a code analysis with SonarQube, run:
-
-```bash
-make scan
-```
-
-Make sure to have SonarQube running before starting the analysis.
-
-There is another way to start a code analysis with SonarQube, run the target `start-sonar` in the `Makefile`.
-
-If you want to stop the SonarQube server, run the target `stop-sonar` in the `Makefile`.
-
-## Testing
-
-To run the tests, run:
-
-```bash
-make test
-```
-
-There is an alias to run the tests with `tests`.
-
-### Coverage
-
-To run the tests with coverage, run:
-
-```bash
-make coverage
-```
-
-### Development
-
-If you want to regenerate the mocks, run:
-
-```bash
-make mocks
-```
+This will install the binary in the `/usr/local/bin` directory.
 
 ## Usage
 
@@ -126,12 +83,14 @@ The following flags are available for the `bump` command:
 To run Gommitizen in a Docker container, run:
 
 ```bash
-docker run \
-  -v <directory>:/code \
-  gommitizen:<tag> <command> [flags]
+docker run --rm \
+  -e GIT_USER_NAME=user.name \
+  -e GIT_USER_EMAIL=user@email \
+  -v $(pwd):/source \
+  ghcr.io/freepikcompany/gommitizen:<tag> [flags]
 ```
 
-Replace  `<tag>` with the tag of the image you want to use. Replace `<directory>` with the directory where the project is located. Select the command and flags you want to use.
+Replace  `<tag>` with the tag of the image you want to use. Select the command and flags you want to use.
 
 ### Examples
 
