@@ -2,6 +2,8 @@
 
 CURRENT_VERSION := $(shell git describe --tags --abbrev=0)
 
+SOURCE_PATHS := cmd/gommitizen/main.go $(shell find cmd/gommitizen/cmd/ -type f) $(shell find internal/ -type f)
+
 help:
 	@echo "Usage: make [target]"
 	@echo ""
@@ -10,9 +12,9 @@ help:
 
 bin: ./bin/gommitizen ## Build go application
 
-./bin/gommitizen: ./cmd/gommitizen/main.go
+./bin/gommitizen: $(SOURCE_PATHS)
 	go build \
-		-ldflags "-X github.com/freepikcompany/gommitizen/internal/version.version=${CURRENT_VERSION}" \
+		-ldflags "-X github.com/freepik-company/gommitizen/internal/version.version=${CURRENT_VERSION}" \
 		-o $@ $<
 
 install: bin /usr/local/bin/gommitizen ## Install gommitizen
