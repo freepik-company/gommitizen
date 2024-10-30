@@ -3,6 +3,7 @@ package main
 import (
 	"gommitizen/cmd/gommitizen/cmd"
 	"gommitizen/internal/prettylogconsole"
+	"gommitizen/internal/version"
 	"log/slog"
 	"os"
 
@@ -18,7 +19,7 @@ func main() {
 
 	root := &cobra.Command{
 		Use:     "gommitizen",
-		Version: "0.5.2",
+		Version: version.GetVersion(),
 		Short:   "A commitizen implementation for Go with multi-project support",
 		Long: `A commitizen implementation for Go with multi-project support.
 It only supports the conventional commits specification: https://www.conventionalcommits.org/en/v1.0.0/
