@@ -1,33 +1,28 @@
-FROM golang:1.21.4-alpine AS builder
+FROM alpine:3.20.3
 
-WORKDIR /app
+LABEL org.opencontainers.image.source=https://github.com/freepikcompany/gommitizen
+LABEL org.opencontainers.image.description="A commitizen implementation for Go with multi-project support"
+LABEL org.opencontainers.image.licenses=MIT
 
-RUN apk add --no-cache \
-    gcc \
-    musl-dev \
-    git
+RUN apk --no-cache add \
+    ca-certificates \
+    openssh-client \
+    git \
+    bash
 
-RUN git config --global user.email "gommitizen@localhost" && \
-    git config --global user.name "Gommitizen"
+RUN addgroup -S gommitizen && adduser -S gommitizen -G gommitizen
 
-COPY . .
+COPY gommitizen /usr/local/bin/gommitizen
 
-RUN go mod download
+# Mount the source code here
+WORKDIR /source
 
-RUN go test -v ./...
-RUN go build -o /app/bin/gommitizen
+USER gommitizen
 
-# Path: Dockerfile
-FROM alpine:3.13
+RUN echo "git config --global --add safe.directory /source" >> /home/gommitizen/.bashrc && \
+    echo 'git config --global user.name "$GIT_USER_NAME"' >> /home/gommitizen/.bashrc && \
+    echo 'git config --global user.email "$GIT_USER_EMAIL"' >> /home/gommitizen/.bashrc
 
-WORKDIR /code
-
-RUN apk add --no-cache \
-    git
-
-RUN git config --global user.email "gommitizen@localhost" && \
-    git config --global user.name "Gommitizen"
-
-COPY --from=builder /app/bin/ /usr/local/bin/
-
-ENTRYPOINT ["/usr/local/bin/gommitizen"]
+# Set the entrypoint to start the SSH agent
+ENTRYPOINT ["/bin/bash", "-c", "source /home/gommitizen/.bashrc && /usr/local/bin/gommitizen $@", "--"]
+CMD [""]
