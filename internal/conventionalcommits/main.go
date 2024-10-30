@@ -28,28 +28,35 @@ type ConventionalCommit struct {
 	Subject          string
 }
 
-var (
-	commonNameBC       = "Breaking changes"
-	commonNameFeat     = "Features"
-	commonNameFix      = "Bug Fixes"
-	commonNameRefactor = "Miscellaneous"
+const (
+	CommonNameBC            = "Breaking changes"
+	CommonNameFeat          = "Features"
+	CommonNameFix           = "Bug Fixes"
+	CommonNameRefactor      = "Refactors"
+	CommonNameMiscellaneous = "Miscellaneous"
+)
 
+var (
 	changeTypes = []ChangeType{
 		{
-			CommonName: commonNameBC,
+			CommonName: CommonNameBC,
 			Prefixes:   []string{"bc", "breaking change"},
 		},
 		{
-			CommonName: commonNameFeat,
+			CommonName: CommonNameFeat,
 			Prefixes:   []string{"feat", "feature"},
 		},
 		{
-			CommonName: commonNameFix,
+			CommonName: CommonNameFix,
 			Prefixes:   []string{"fix", "bug", "bugfix"},
 		},
 		{
-			CommonName: commonNameRefactor,
-			Prefixes:   []string{"refactor", "perf", "performance", "test", "tests", "chore", "ci", "build", "docs", "style"},
+			CommonName: CommonNameRefactor,
+			Prefixes:   []string{"refactor"},
+		},
+		{
+			CommonName: CommonNameMiscellaneous,
+			Prefixes:   []string{"perf", "performance", "test", "tests", "chore", "ci", "build", "docs", "style"},
 		},
 	}
 )
@@ -118,11 +125,11 @@ func DetermineIncrementType(commits []ConventionalCommit) string {
 
 	for _, commit := range commits {
 		switch commit.CommonChangeType {
-		case commonNameBC:
+		case CommonNameBC:
 			return "major"
-		case commonNameFeat:
+		case CommonNameFeat:
 			hasMinor = true
-		case commonNameFix, commonNameRefactor:
+		case CommonNameFix, CommonNameRefactor:
 			hasPatch = true
 		}
 	}

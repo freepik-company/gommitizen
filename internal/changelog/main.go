@@ -12,9 +12,14 @@ import (
 )
 
 type data struct {
-	Version           string
-	Date              string
-	GroupByChangeType map[string][]conventionalcommits.ConventionalCommit
+	Version string
+	Date    string
+
+	BreakingChanges []conventionalcommits.ConventionalCommit
+	Features        []conventionalcommits.ConventionalCommit
+	BugFixes        []conventionalcommits.ConventionalCommit
+	Refactors       []conventionalcommits.ConventionalCommit
+	Miscellaneous   []conventionalcommits.ConventionalCommit
 }
 
 const changelogFileName = "CHANGELOG.md"
@@ -24,11 +29,17 @@ var tplFile embed.FS
 
 func Apply(dirPath string, version string, commits []conventionalcommits.ConventionalCommit) (string, error) {
 	changelogFilePath := filepath.Join(dirPath, changelogFileName)
+	groupByCommonChangeType := groupByCommonChangeType(commits)
 
 	data := data{
-		Version:           version,
-		Date:              time.Now().Format("2006-01-02"),
-		GroupByChangeType: groupByCommonChangeType(commits),
+		Version: version,
+		Date:    time.Now().Format("2006-01-02"),
+
+		BreakingChanges: groupByCommonChangeType[conventionalcommits.CommonNameBC],
+		Features:        groupByCommonChangeType[conventionalcommits.CommonNameFeat],
+		BugFixes:        groupByCommonChangeType[conventionalcommits.CommonNameFix],
+		Refactors:       groupByCommonChangeType[conventionalcommits.CommonNameRefactor],
+		Miscellaneous:   groupByCommonChangeType[conventionalcommits.CommonNameMiscellaneous],
 	}
 
 	tpl, err := template.ParseFS(tplFile, "template.tpl")
