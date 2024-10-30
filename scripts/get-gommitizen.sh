@@ -5,7 +5,7 @@ set -e
 # Usage:
 # curl -s https://raw.githubusercontent.com/freepikcompany/gommitizen/main/scripts/get-gommitizen.sh | sudo bash
 
-REPO="freepikcompany/gommitizen"
+REPO="freepik-company/gommitizen"
 INSTALL_DIR="/usr/local/bin"
 BINARY_NAME="gommitizen"
 
