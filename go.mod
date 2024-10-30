@@ -1,4 +1,4 @@
-module gommitizen
+module github.com/freepik-company/gommitizen
 
 go 1.22
 
