@@ -6,7 +6,7 @@ import (
 
 	"github.com/Masterminds/semver"
 
-	"github.com/freepik-company/gommitizen/internal/cmdgit"
+	"github.com/freepik-company/gommitizen/internal/git"
 )
 
 func IncrementVersion(currentVersionStr string, incType string) (string, string, error) {
@@ -40,7 +40,7 @@ func BumpCommitAll(modifiedFiles []string, tagVersions []string) ([]string, erro
 	}
 
 	for _, filePath := range modifiedFiles {
-		_, err := cmdgit.AddFilePath(filePath)
+		_, err := git.AddFilePath(filePath)
 		if err != nil {
 			return nil, fmt.Errorf("error adding file %s: %v", filePath, err)
 		}
@@ -51,13 +51,13 @@ func BumpCommitAll(modifiedFiles []string, tagVersions []string) ([]string, erro
 		message = fmt.Sprintf("bump: new versions %s", strings.Join(tagVersions, ", "))
 	}
 
-	_, err := cmdgit.CreateCommit(message)
+	_, err := git.CreateCommit(message)
 	if err != nil {
 		return nil, fmt.Errorf("error committing %s: %v", message, err)
 	}
 
 	for _, tagVersion := range tagVersions {
-		_, err := cmdgit.CreateTag(tagVersion)
+		_, err := git.CreateTag(tagVersion)
 		if err != nil {
 			return nil, fmt.Errorf("error tagging %s: %v", tagVersion, err)
 		}

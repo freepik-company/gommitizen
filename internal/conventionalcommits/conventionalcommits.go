@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/freepik-company/gommitizen/internal/cmdgit"
+	"github.com/freepik-company/gommitizen/internal/git"
 )
 
 // https://www.conventionalcommits.org/en/v1.0.0/
@@ -70,7 +70,7 @@ func (cc ConventionalCommit) String() string {
 	}
 }
 
-func ReadConventionalCommits(commits []cmdgit.Commit) []ConventionalCommit {
+func ReadConventionalCommits(commits []git.Commit) []ConventionalCommit {
 	cvcommits := make([]ConventionalCommit, 0)
 	for _, commit := range commits {
 		re := regexp.MustCompile(`(?P<change_type>\w+)(\((?P<scope>\w+)\))?:\s*(?P<subject>.+?)\s*$`)
