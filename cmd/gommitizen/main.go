@@ -42,6 +42,7 @@ Currently it only supports the bump command, but it will support the commit comm
 
 	root.AddCommand(cmd.Init())
 	root.AddCommand(cmd.Bump())
+	root.AddCommand(cmd.Projects())
 
 	err := root.Execute()
 	if err != nil {
