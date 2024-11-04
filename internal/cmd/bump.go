@@ -10,9 +10,9 @@ import (
 
 	"github.com/freepik-company/gommitizen/internal/bumpmanager"
 	"github.com/freepik-company/gommitizen/internal/changelog"
-	"github.com/freepik-company/gommitizen/internal/cmdgit"
 	"github.com/freepik-company/gommitizen/internal/config"
 	"github.com/freepik-company/gommitizen/internal/conventionalcommits"
+	"github.com/freepik-company/gommitizen/internal/git"
 )
 
 var (
@@ -25,7 +25,7 @@ type bumpOpts struct {
 	incrementType   string
 }
 
-func Bump() *cobra.Command {
+func bumpCmd() *cobra.Command {
 	opts := bumpOpts{}
 
 	cmd := &cobra.Command{
@@ -112,7 +112,7 @@ func bumpByConfig(configVersionPath string, createChangelog bool, incrementType 
 
 	slog.Info(fmt.Sprintf("Running bump in project %s", config.GetDirPath()))
 
-	gitCommits, err := cmdgit.GetCommits(config.Commit, config.GetDirPath())
+	gitCommits, err := git.GetCommits(config.Commit, config.GetDirPath())
 	cvCommits := conventionalcommits.ReadConventionalCommits(gitCommits)
 	if err != nil {
 		return []string{}, "", fmt.Errorf("commit messages: %s", err)
@@ -128,7 +128,7 @@ func bumpByConfig(configVersionPath string, createChangelog bool, incrementType 
 			return []string{}, "", fmt.Errorf("increment version: %s", err)
 		}
 
-		lastCommit, err := cmdgit.GetLastCommit()
+		lastCommit, err := git.GetLastCommit()
 		if err != nil {
 			return []string{}, "", fmt.Errorf("last commit: %s", err)
 		}
@@ -163,7 +163,7 @@ func bumpByConfig(configVersionPath string, createChangelog bool, incrementType 
 
 		slog.Info(fmt.Sprintf("Updated version in %s", config.GetDirPath()))
 	} else {
-		slog.Info(fmt.Sprintf("Bump skipped in %s", config.GetDirPath()))
+		slog.Info(fmt.Sprintf("bump skipped in %s", config.GetDirPath()))
 	}
 	slog.Info("---")
 	return modifiedFiles, tagVersion, nil

@@ -1,4 +1,4 @@
-package cmdgit
+package git
 
 import (
 	"encoding/json"

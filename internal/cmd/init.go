@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/freepik-company/gommitizen/internal/cmdgit"
 	"github.com/freepik-company/gommitizen/internal/config"
+	"github.com/freepik-company/gommitizen/internal/git"
 )
 
 type initOpts struct {
@@ -16,7 +16,7 @@ type initOpts struct {
 	prefix    string
 }
 
-func Init() *cobra.Command {
+func initCmd() *cobra.Command {
 	opts := initOpts{}
 
 	cmd := &cobra.Command{
@@ -40,7 +40,7 @@ func initRun(dirPath, prefix string) {
 		os.Exit(1)
 	}
 
-	commit, err := cmdgit.GetFirstCommit()
+	commit, err := git.GetFirstCommit()
 	if err != nil {
 		slog.Error(fmt.Sprintf("first commit: %v", err))
 		os.Exit(1)
