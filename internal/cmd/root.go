@@ -40,7 +40,7 @@ Currently it only supports the bump command, but it will support the commit comm
 
 	root.AddCommand(initCmd())
 	root.AddCommand(bumpCmd())
-	root.AddCommand(projectsCmd())
+	root.AddCommand(getCmd())
 
 	return root
 }
