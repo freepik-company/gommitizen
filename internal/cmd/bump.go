@@ -25,7 +25,7 @@ type bumpOpts struct {
 	incrementType   string
 }
 
-func Bump() *cobra.Command {
+func bumpCmd() *cobra.Command {
 	opts := bumpOpts{}
 
 	cmd := &cobra.Command{
@@ -163,7 +163,7 @@ func bumpByConfig(configVersionPath string, createChangelog bool, incrementType 
 
 		slog.Info(fmt.Sprintf("Updated version in %s", config.GetDirPath()))
 	} else {
-		slog.Info(fmt.Sprintf("Bump skipped in %s", config.GetDirPath()))
+		slog.Info(fmt.Sprintf("bump skipped in %s", config.GetDirPath()))
 	}
 	slog.Info("---")
 	return modifiedFiles, tagVersion, nil

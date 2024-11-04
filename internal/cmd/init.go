@@ -16,7 +16,7 @@ type initOpts struct {
 	prefix    string
 }
 
-func Init() *cobra.Command {
+func initCmd() *cobra.Command {
 	opts := initOpts{}
 
 	cmd := &cobra.Command{

@@ -18,7 +18,7 @@ type projectsOpts struct {
 	outputFormat    string
 }
 
-func Projects() *cobra.Command {
+func projectsCmd() *cobra.Command {
 	var opts = projectsOpts{}
 
 	cmd := &cobra.Command{
