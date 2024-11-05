@@ -12,7 +12,7 @@ import (
 )
 
 type ConfigVersion struct {
-	dirPath string
+	DirPath string
 
 	Version      string   `json:"version"`
 	Commit       string   `json:"commit"`
@@ -32,7 +32,7 @@ func NewConfigVersion(dirPath string, version string, commit string, tagPrefix s
 	}
 
 	return &ConfigVersion{
-		dirPath: nDirPath,
+		DirPath: nDirPath,
 
 		Version:      version,
 		Commit:       commit,
@@ -53,7 +53,7 @@ func ReadConfigVersion(configVersionPath string) (*ConfigVersion, error) {
 		return nil, fmt.Errorf("unmarshal json: %v", err)
 	}
 
-	version.dirPath = filepath.Dir(configVersionPath)
+	version.DirPath = filepath.Dir(configVersionPath)
 	return &version, nil
 }
 
@@ -72,11 +72,11 @@ func (v ConfigVersion) Save() error {
 }
 
 func (v ConfigVersion) GetConfigVersionFilePath() string {
-	return filepath.Join(v.dirPath, defaultFileName)
+	return filepath.Join(v.DirPath, defaultFileName)
 }
 
 func (v ConfigVersion) GetDirPath() string {
-	return v.dirPath
+	return v.DirPath
 }
 
 func (v ConfigVersion) GetTagVersion() string {
@@ -106,7 +106,7 @@ func (v *ConfigVersion) UpdateVersion(newVersion string, lastCommit string) ([]s
 
 		fileName := versionFile[:index]
 		substring := versionFile[index+1:]
-		filePath := filepath.Join(v.dirPath, fileName)
+		filePath := filepath.Join(v.DirPath, fileName)
 
 		err := updateVersionOfFiles(filePath, substring, newVersion)
 		if err != nil {

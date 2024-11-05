@@ -16,8 +16,8 @@ func TestNewConfigVersion(t *testing.T) {
 
 	v := NewConfigVersion(dirPath, version, commit, prefix)
 
-	if v.dirPath != dirPath {
-		t.Errorf("expected path %s, got %s", dirPath, v.dirPath)
+	if v.DirPath != dirPath {
+		t.Errorf("expected path %s, got %s", dirPath, v.DirPath)
 	}
 	if v.Version != version {
 		t.Errorf("expected version %s, got %s", version, v.Version)
@@ -60,7 +60,7 @@ func TestRead(t *testing.T) {
 
 	// Verificar los resultados
 	expected := &ConfigVersion{
-		dirPath:      tempDir,
+		DirPath:      tempDir,
 		Version:      "1.0.0",
 		Commit:       "abc123",
 		VersionFiles: []string{"file1", "file2"},
