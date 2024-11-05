@@ -2,7 +2,7 @@
 
 CURRENT_VERSION := $(shell git describe --tags --abbrev=0)
 
-SOURCE_PATHS := cmd/gommitizen/main.go $(shell find cmd/gommitizen/cmd/ -type f) $(shell find internal/ -type f)
+SOURCE_PATHS := cmd/gommitizen/main.go $(shell find internal/ -type f)
 
 help:
 	@echo "Usage: make [target]"
