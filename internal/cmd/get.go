@@ -32,7 +32,6 @@ func getCmd() *cobra.Command {
 
 	cmd.AddCommand(getAllCmd())
 	cmd.AddCommand(getVersionCmd())
-	cmd.AddCommand(getPathCmd())
 	cmd.AddCommand(getPrefixCmd())
 	cmd.AddCommand(getCommitCmd())
 
@@ -67,16 +66,6 @@ func getVersionCmd() *cobra.Command {
 		Short: "Get the version of the projects",
 		Run: func(cmd *cobra.Command, args []string) {
 			projectsRun(opts, []string{"Version", "TagPrefix"})
-		},
-	}
-}
-
-func getPathCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "path",
-		Short: "Get the path of the projects",
-		Run: func(cmd *cobra.Command, args []string) {
-			projectsRun(opts, []string{"DirPath", "TagPrefix"})
 		},
 	}
 }
@@ -145,9 +134,10 @@ func projectsRun(opts projectsOpts, filter []string) {
 		configVersions = append(configVersions, configVersionFile)
 	}
 
-	err := config.PrintConfigVersions(configVersions, filter, opts.outputFormat)
+	str, err := config.PrintConfigVersions(configVersions, filter, opts.outputFormat)
 	if err != nil {
 		slog.Error(fmt.Sprintf("printing config versions: %v", err))
 		os.Exit(1)
 	}
+	slog.Info(str)
 }

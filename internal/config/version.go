@@ -12,16 +12,16 @@ import (
 )
 
 type ConfigVersion struct {
-	DirPath string
+	dirPath string
 
-	Version      string   `json:"version"`
-	Commit       string   `json:"commit"`
-	VersionFiles []string `json:"version_files"`
-	TagPrefix    string   `json:"tag_prefix"`
+	Version      string   `json:"version" yaml:"version" plain:"version"`
+	Commit       string   `json:"commit" yaml:"commit" plain:"commit"`
+	VersionFiles []string `json:"version_files" yaml:"version_files" plain:"version_files"`
+	TagPrefix    string   `json:"tag_prefix" yaml:"tag_prefix" plain:"tag_prefix"`
 }
 
 func NewConfigVersion(dirPath string, version string, commit string, tagPrefix string) *ConfigVersion {
-	nDirPath, err := NormalizePath(dirPath)
+	ndirPath, err := NormalizePath(dirPath)
 	if err != nil {
 		panic(fmt.Errorf("NormalizePath %s: %v", dirPath, err))
 	}
@@ -32,7 +32,7 @@ func NewConfigVersion(dirPath string, version string, commit string, tagPrefix s
 	}
 
 	return &ConfigVersion{
-		DirPath: nDirPath,
+		dirPath: ndirPath,
 
 		Version:      version,
 		Commit:       commit,
@@ -53,7 +53,7 @@ func ReadConfigVersion(configVersionPath string) (*ConfigVersion, error) {
 		return nil, fmt.Errorf("unmarshal json: %v", err)
 	}
 
-	version.DirPath = filepath.Dir(configVersionPath)
+	version.dirPath = filepath.Dir(configVersionPath)
 	return &version, nil
 }
 
@@ -72,11 +72,11 @@ func (v ConfigVersion) Save() error {
 }
 
 func (v ConfigVersion) GetConfigVersionFilePath() string {
-	return filepath.Join(v.DirPath, defaultFileName)
+	return filepath.Join(v.dirPath, defaultFileName)
 }
 
 func (v ConfigVersion) GetDirPath() string {
-	return v.DirPath
+	return v.dirPath
 }
 
 func (v ConfigVersion) GetTagVersion() string {
@@ -106,7 +106,7 @@ func (v *ConfigVersion) UpdateVersion(newVersion string, lastCommit string) ([]s
 
 		fileName := versionFile[:index]
 		substring := versionFile[index+1:]
-		filePath := filepath.Join(v.DirPath, fileName)
+		filePath := filepath.Join(v.dirPath, fileName)
 
 		err := updateVersionOfFiles(filePath, substring, newVersion)
 		if err != nil {
