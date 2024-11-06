@@ -158,7 +158,12 @@ func configVersionFilter(configVersions []*ConfigVersion, fields []string) []map
 		filteredConfigVersion := make(map[string]interface{})
 
 		for j := 0; j < val.NumField(); j++ {
-			fieldName := typ.Field(j).Name
+			var fieldName string
+			if typ.Field(j).Name == "DirPath" {
+				fieldName = "dir_path"
+			} else {
+				fieldName = typ.Field(j).Tag.Get("json")
+			}
 			if len(fields) == 0 {
 				fieldValue := val.Field(j).Interface()
 				filteredConfigVersion[fieldName] = fieldValue
