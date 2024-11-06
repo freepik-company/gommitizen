@@ -11,42 +11,31 @@ import (
 	"github.com/freepik-company/gommitizen/internal/git"
 )
 
-type initOpts struct {
-	directory string
-	prefix    string
-}
-
 func initCmd() *cobra.Command {
-	opts := initOpts{}
+	var prefix string
 
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Start a repository to use gommitizen",
 		Run: func(cmd *cobra.Command, args []string) {
-			initRun(opts.directory, opts.prefix)
+			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
+			initRun(dirPath, prefix)
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.directory, "directory", "d", "", "Select a directory to initialize")
-	cmd.Flags().StringVarP(&opts.prefix, "prefix", "p", "", "Select a prefix for the version file")
+	cmd.Flags().StringVarP(&prefix, "prefix", "p", "", "Select a prefix for the version file")
 
 	return cmd
 }
 
 func initRun(dirPath, prefix string) {
-	nDirPath, err := config.NormalizePath(dirPath)
-	if err != nil {
-		slog.Error(fmt.Sprintf("normalising folders: %v", err))
-		os.Exit(1)
-	}
-
 	commit, err := git.GetFirstCommit()
 	if err != nil {
 		slog.Error(fmt.Sprintf("first commit: %v", err))
 		os.Exit(1)
 	}
 
-	config := config.NewConfigVersion(nDirPath, "0.0.0", commit, prefix)
+	config := config.NewConfigVersion(dirPath, "0.0.0", commit, prefix)
 	err = config.Save()
 	if err != nil {
 		slog.Error(fmt.Sprintf("config: %v", err))

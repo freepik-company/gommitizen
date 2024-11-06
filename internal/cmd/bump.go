@@ -15,47 +15,38 @@ import (
 	"github.com/freepik-company/gommitizen/internal/git"
 )
 
-var (
-	validIncrements = []string{"MAJOR", "MINOR", "PATCH"}
-)
-
-type bumpOpts struct {
-	directory       string
-	createChangelog bool
-	incrementType   string
-}
-
 func bumpCmd() *cobra.Command {
-	opts := bumpOpts{}
+	var validIncrements = []string{"MAJOR", "MINOR", "PATCH"}
+	var incrementType string
+	var createChangelog bool
 
 	cmd := &cobra.Command{
 		Use:   "bump",
 		Short: "Make a version bump",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			increment, _ := cmd.Flags().GetString("increment")
+			if increment == "" {
+				return nil
+			}
+			for _, valid := range validIncrements {
+				if increment == valid {
+					return nil
+				}
+			}
+			return fmt.Errorf(
+				"invalid increment value: %s, supported values: %s",
+				increment,
+				strings.Join(validIncrements, ", "),
+			)
+		},
 		Run: func(cmd *cobra.Command, args []string) {
-			bumpRun(opts.directory, opts.createChangelog, strings.ToLower(opts.incrementType))
+			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
+			bumpRun(dirPath, createChangelog, strings.ToLower(incrementType))
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.directory, "directory", "d", "", "select a project directory to bump")
-	cmd.Flags().BoolVarP(&opts.createChangelog, "changelog", "c", false, "generate the changelog for the newest version")
-	cmd.Flags().StringVarP(&opts.incrementType, "increment", "i", "", "manually specify the desired increment {MAYOR, MINOR, PATCH}")
-
-	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
-		increment, _ := cmd.Flags().GetString("increment")
-		if increment == "" {
-			return nil
-		}
-		for _, valid := range validIncrements {
-			if increment == valid {
-				return nil
-			}
-		}
-		return fmt.Errorf(
-			"invalid increment value: %s, supported values: %s",
-			increment,
-			strings.Join(validIncrements, ", "),
-		)
-	}
+	cmd.Flags().BoolVarP(&createChangelog, "changelog", "c", false, "generate the changelog for the newest version")
+	cmd.Flags().StringVarP(&incrementType, "increment", "i", "", "manually specify the desired increment {MAYOR, MINOR, PATCH}")
 
 	return cmd
 }
@@ -65,13 +56,7 @@ func bumpRun(dirPath string, createChangelog bool, incrementType string) {
 		slog.Info(fmt.Sprintf("Bumping version with increment: %s", incrementType))
 	}
 
-	nDirPath, err := config.NormalizePath(dirPath)
-	if err != nil {
-		slog.Error(fmt.Sprintf("normalising folders: %v", err))
-		os.Exit(1)
-	}
-
-	configVersionPaths, err := config.FindConfigVersionFilePath(nDirPath)
+	configVersionPaths, err := config.FindConfigVersionFilePath(dirPath)
 	if err != nil {
 		slog.Error(fmt.Sprintf("find config version paths: %v", err))
 		os.Exit(1)
