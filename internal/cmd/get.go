@@ -40,7 +40,6 @@ func getCmd() *cobra.Command {
 
 	cmd.AddCommand(getAllCmd())
 	cmd.AddCommand(getVersionCmd())
-	cmd.AddCommand(getPathCmd())
 	cmd.AddCommand(getPrefixCmd())
 	cmd.AddCommand(getCommitCmd())
 
@@ -69,19 +68,6 @@ func getVersionCmd() *cobra.Command {
 			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
 			output := cmd.Parent().Flag(cmdGetOutput).Value.String()
 			projectsRun(dirPath, prefix, output, []string{"Version", "TagPrefix"})
-		},
-	}
-}
-
-func getPathCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "path",
-		Short: "Get the path of the projects",
-		Run: func(cmd *cobra.Command, args []string) {
-			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
-			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
-			output := cmd.Parent().Flag(cmdGetOutput).Value.String()
-			projectsRun(dirPath, prefix, output, []string{"DirPath", "TagPrefix"})
 		},
 	}
 }
@@ -145,9 +131,10 @@ func projectsRun(dirPath string, prefix string, output string, filter []string) 
 		configVersions = append(configVersions, configVersionFile)
 	}
 
-	err = config.PrintConfigVersions(configVersions, filter, output)
+	str, err := config.PrintConfigVersions(configVersions, filter, output)
 	if err != nil {
 		slog.Error(fmt.Sprintf("printing config versions: %v", err))
 		os.Exit(1)
 	}
+	slog.Info(str)
 }

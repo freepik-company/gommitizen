@@ -12,12 +12,12 @@ import (
 )
 
 type ConfigVersion struct {
-	DirPath string
+	dirPath string
 
-	Version      string   `json:"version"`
-	Commit       string   `json:"commit"`
-	VersionFiles []string `json:"version_files"`
-	TagPrefix    string   `json:"tag_prefix"`
+	Version      string   `json:"version" yaml:"version" plain:"version"`
+	Commit       string   `json:"commit" yaml:"commit" plain:"commit"`
+	VersionFiles []string `json:"version_files" yaml:"version_files" plain:"version_files"`
+	TagPrefix    string   `json:"tag_prefix" yaml:"tag_prefix" plain:"tag_prefix"`
 }
 
 func NewConfigVersion(dirPath string, version string, commit string, tagPrefix string) *ConfigVersion {
@@ -27,7 +27,7 @@ func NewConfigVersion(dirPath string, version string, commit string, tagPrefix s
 	}
 
 	return &ConfigVersion{
-		DirPath: dirPath,
+		dirPath: dirPath,
 
 		Version:      version,
 		Commit:       commit,
@@ -48,7 +48,7 @@ func ReadConfigVersion(configVersionPath string) (*ConfigVersion, error) {
 		return nil, fmt.Errorf("unmarshal json: %v", err)
 	}
 
-	version.DirPath = filepath.Dir(configVersionPath)
+	version.dirPath = filepath.Dir(configVersionPath)
 	return &version, nil
 }
 
@@ -58,20 +58,20 @@ func (v ConfigVersion) Save() error {
 		return fmt.Errorf("parse struct to json: %v", err)
 	}
 
-	err = os.WriteFile(v.GetConfigVersionFilePath(), data, 0644)
+	err = os.WriteFile(v.GetFilePath(), data, 0644)
 	if err != nil {
-		return fmt.Errorf("write file %s: %v", v.GetConfigVersionFilePath(), err)
+		return fmt.Errorf("write file %s: %v", v.GetFilePath(), err)
 	}
 
 	return nil
 }
 
-func (v ConfigVersion) GetConfigVersionFilePath() string {
-	return filepath.Join(v.DirPath, defaultFileName)
+func (v ConfigVersion) GetFilePath() string {
+	return filepath.Join(v.dirPath, defaultFileName)
 }
 
 func (v ConfigVersion) GetDirPath() string {
-	return v.DirPath
+	return v.dirPath
 }
 
 func (v ConfigVersion) GetTagVersion() string {
@@ -90,7 +90,7 @@ func (v *ConfigVersion) UpdateVersion(newVersion string, lastCommit string) ([]s
 	if err != nil {
 		return nil, err
 	}
-	modifiedFiles = append(modifiedFiles, v.GetConfigVersionFilePath())
+	modifiedFiles = append(modifiedFiles, v.GetFilePath())
 
 	for _, versionFile := range v.VersionFiles {
 		index := strings.Index(versionFile, ":")
@@ -101,7 +101,7 @@ func (v *ConfigVersion) UpdateVersion(newVersion string, lastCommit string) ([]s
 
 		fileName := versionFile[:index]
 		substring := versionFile[index+1:]
-		filePath := filepath.Join(v.DirPath, fileName)
+		filePath := filepath.Join(v.dirPath, fileName)
 
 		err := updateVersionOfFiles(filePath, substring, newVersion)
 		if err != nil {
