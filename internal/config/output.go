@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -72,38 +73,28 @@ func configVersionFilter(configVersions []*ConfigVersion, fields []string, outpu
 		cvw := ConfigVersionWrapper{
 			DirPath:       configVersion.GetDirPath(),
 			FilePath:      configVersion.GetFilePath(),
-			ConfigVersion: make(map[string]interface{}, 0),
+			ConfigVersion: make(map[string]interface{}),
 		}
 
 		val := reflect.ValueOf(configVersion).Elem()
 		typ := val.Type()
 
-		if len(fields) > 0 {
-			for _, field := range fields {
-				xField, ok := typ.FieldByName(field)
-				if !ok {
-					continue // Si el campo no existe, pasamos al siguiente
-				}
-				xValue := val.FieldByName(field)
-				if xValue.IsValid() && xValue.CanInterface() {
-					xTag := xField.Tag.Get(outputFormat)
-					if xTag == "" {
-						xTag = field
-					}
-					cvw.ConfigVersion[xTag] = xValue.Interface()
-				}
+		if len(fields) == 0 {
+			fields = getAllFieldNames(typ)
+		}
+
+		for _, field := range fields {
+			xField, ok := typ.FieldByName(field)
+			if !ok {
+				continue
 			}
-		} else {
-			for i := 0; i < val.NumField(); i++ {
-				xField := typ.Field(i)
-				xValue := val.Field(i)
-				if xValue.IsValid() && xValue.CanInterface() {
-					xTag := xField.Tag.Get(outputFormat)
-					if xTag == "" {
-						xTag = xField.Name
-					}
-					cvw.ConfigVersion[xTag] = xValue.Interface()
+			xValue := val.FieldByName(field)
+			if xValue.IsValid() && xValue.CanInterface() {
+				xTag := strings.Split(xField.Tag.Get(outputFormat), ",")[0]
+				if xTag == "" {
+					xTag = field
 				}
+				cvw.ConfigVersion[xTag] = xValue.Interface()
 			}
 		}
 
@@ -111,4 +102,12 @@ func configVersionFilter(configVersions []*ConfigVersion, fields []string, outpu
 	}
 
 	return wrapper
+}
+
+func getAllFieldNames(typ reflect.Type) []string {
+	var fields []string
+	for i := 0; i < typ.NumField(); i++ {
+		fields = append(fields, typ.Field(i).Name)
+	}
+	return fields
 }
