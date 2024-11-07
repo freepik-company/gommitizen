@@ -28,16 +28,7 @@ uninstall:  ## Uninstall gommitizen
 bump: ## Bump version using commitizen
 	cz bump
 
-bump-alpha: ## Bump version using commitizen (alpha)
-	cz bump -pr alpha
-
-bump-beta: ## Bump version using commitizen (beta)
-	cz bump -pr beta
-
-bump-rc: ## Bump version using commitizen (release candidate)
-	cz bump -pr rc
-
-release: bump ## Release new version
+release: ## Release new version
 	goreleaser release
 
 test-release: ## Test release new version
