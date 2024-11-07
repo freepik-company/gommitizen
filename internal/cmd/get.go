@@ -10,18 +10,23 @@ import (
 	"github.com/freepik-company/gommitizen/internal/config"
 )
 
-type projectsOpts struct {
-	directory     string
-	projectPrefix string
-	outputFormat  string
-}
-
-var opts = projectsOpts{}
+const (
+	cmdGetPrefix = "prefix"
+	cmdGetOutput = "output"
+)
 
 func getCmd() *cobra.Command {
+	var prefix, output string
+
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "Give a list of projects, their versions and other information",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if output != "json" && output != "yaml" && output != "plain" {
+				return fmt.Errorf("invalid output format: %s, supported values: json, yaml, plain", output)
+			}
+			return nil
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			err := cmd.Help()
 			if err != nil {
@@ -30,23 +35,14 @@ func getCmd() *cobra.Command {
 		},
 	}
 
+	cmd.PersistentFlags().StringVarP(&output, cmdGetOutput, "o", "plain", "select the output format {json, yaml, plain}")
+	cmd.PersistentFlags().StringVarP(&prefix, cmdGetPrefix, "p", "", "select a prefix to look for projects. Don't use with --directory")
+
 	cmd.AddCommand(getAllCmd())
 	cmd.AddCommand(getVersionCmd())
 	cmd.AddCommand(getPathCmd())
 	cmd.AddCommand(getPrefixCmd())
 	cmd.AddCommand(getCommitCmd())
-
-	cmd.PersistentFlags().StringVarP(&opts.outputFormat, "output", "o", "plain", "select the output format {json, yaml, plain}")
-	cmd.PersistentFlags().StringVarP(&opts.directory, "directory", "d", "", "select a project directory to retrieve the project information")
-	cmd.PersistentFlags().StringVarP(&opts.projectPrefix, "prefix", "p", "", "select a prefix to look for projects. Don't use with --directory")
-
-	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
-		if opts.outputFormat != "json" && opts.outputFormat != "yaml" && opts.outputFormat != "plain" {
-			return fmt.Errorf("invalid output format: %s, supported values: json, yaml, plain", opts.outputFormat)
-		}
-
-		return nil
-	}
 
 	return cmd
 }
@@ -56,7 +52,10 @@ func getAllCmd() *cobra.Command {
 		Use:   "all",
 		Short: "Get all projects information",
 		Run: func(cmd *cobra.Command, args []string) {
-			projectsRun(opts, nil)
+			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
+			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
+			output := cmd.Parent().Flag(cmdGetOutput).Value.String()
+			projectsRun(dirPath, prefix, output, nil)
 		},
 	}
 }
@@ -66,7 +65,10 @@ func getVersionCmd() *cobra.Command {
 		Use:   "version",
 		Short: "Get the version of the projects",
 		Run: func(cmd *cobra.Command, args []string) {
-			projectsRun(opts, []string{"Version", "TagPrefix"})
+			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
+			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
+			output := cmd.Parent().Flag(cmdGetOutput).Value.String()
+			projectsRun(dirPath, prefix, output, []string{"Version", "TagPrefix"})
 		},
 	}
 }
@@ -76,7 +78,10 @@ func getPathCmd() *cobra.Command {
 		Use:   "path",
 		Short: "Get the path of the projects",
 		Run: func(cmd *cobra.Command, args []string) {
-			projectsRun(opts, []string{"DirPath", "TagPrefix"})
+			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
+			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
+			output := cmd.Parent().Flag(cmdGetOutput).Value.String()
+			projectsRun(dirPath, prefix, output, []string{"DirPath", "TagPrefix"})
 		},
 	}
 }
@@ -86,7 +91,10 @@ func getPrefixCmd() *cobra.Command {
 		Use:   "prefix",
 		Short: "Get the prefix of the projects",
 		Run: func(cmd *cobra.Command, args []string) {
-			projectsRun(opts, []string{"TagPrefix"})
+			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
+			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
+			output := cmd.Parent().Flag(cmdGetOutput).Value.String()
+			projectsRun(dirPath, prefix, output, []string{"TagPrefix"})
 		},
 	}
 }
@@ -96,34 +104,26 @@ func getCommitCmd() *cobra.Command {
 		Use:   "commit",
 		Short: "Get the commit information of the projects",
 		Run: func(cmd *cobra.Command, args []string) {
-			projectsRun(opts, []string{"Commit", "TagPrefix"})
+			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
+			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
+			output := cmd.Parent().Flag(cmdGetOutput).Value.String()
+			projectsRun(dirPath, prefix, output, []string{"Commit", "TagPrefix"})
 		},
 	}
 }
 
-func projectsRun(opts projectsOpts, filter []string) {
+func projectsRun(dirPath string, prefix string, output string, filter []string) {
 	var configVersionPaths []string
+	var err error
 
-	if opts.projectPrefix == "" {
-		nDirPath, err := config.NormalizePath(opts.directory)
-		if err != nil {
-			slog.Error(fmt.Sprintf("normalising folders: %v", err))
-			os.Exit(1)
-		}
-
-		configVersionPaths, err = config.FindConfigVersionFilePath(nDirPath)
+	if prefix == "" {
+		configVersionPaths, err = config.FindConfigVersionFilePath(dirPath)
 		if err != nil {
 			slog.Error(fmt.Sprintf("finding config version file path: %v", err))
 			os.Exit(1)
 		}
 	} else {
-		nDirPath, err := config.NormalizePath(opts.directory)
-		if err != nil {
-			slog.Error(fmt.Sprintf("normalising folders: %v", err))
-			os.Exit(1)
-		}
-
-		configVersionPaths, err = config.FindConfigVersionFilePathByPrefix(nDirPath, opts.projectPrefix)
+		configVersionPaths, err = config.FindConfigVersionFilePathByPrefix(dirPath, prefix)
 		if err != nil {
 			slog.Error(fmt.Sprintf("finding config version file path by prefix: %v", err))
 			os.Exit(1)
@@ -145,7 +145,7 @@ func projectsRun(opts projectsOpts, filter []string) {
 		configVersions = append(configVersions, configVersionFile)
 	}
 
-	err := config.PrintConfigVersions(configVersions, filter, opts.outputFormat)
+	err = config.PrintConfigVersions(configVersions, filter, output)
 	if err != nil {
 		slog.Error(fmt.Sprintf("printing config versions: %v", err))
 		os.Exit(1)

@@ -21,18 +21,13 @@ type ConfigVersion struct {
 }
 
 func NewConfigVersion(dirPath string, version string, commit string, tagPrefix string) *ConfigVersion {
-	nDirPath, err := NormalizePath(dirPath)
-	if err != nil {
-		panic(fmt.Errorf("NormalizePath %s: %v", dirPath, err))
-	}
-
 	nTagPrefix := tagPrefix
 	if len(tagPrefix) == 0 {
 		nTagPrefix = filepath.Base(dirPath)
 	}
 
 	return &ConfigVersion{
-		DirPath: nDirPath,
+		DirPath: dirPath,
 
 		Version:      version,
 		Commit:       commit,
