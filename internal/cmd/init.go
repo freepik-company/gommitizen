@@ -53,5 +53,5 @@ func initRun(dirPath, prefix string) {
 		os.Exit(1)
 	}
 
-	slog.Info(fmt.Sprintf("Initializing gommitizen in %s", config.GetConfigVersionFilePath()))
+	slog.Info(fmt.Sprintf("Initializing gommitizen in %s", config.GetFilePath()))
 }

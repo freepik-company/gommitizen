@@ -63,15 +63,15 @@ func (v ConfigVersion) Save() error {
 		return fmt.Errorf("parse struct to json: %v", err)
 	}
 
-	err = os.WriteFile(v.GetConfigVersionFilePath(), data, 0644)
+	err = os.WriteFile(v.GetFilePath(), data, 0644)
 	if err != nil {
-		return fmt.Errorf("write file %s: %v", v.GetConfigVersionFilePath(), err)
+		return fmt.Errorf("write file %s: %v", v.GetFilePath(), err)
 	}
 
 	return nil
 }
 
-func (v ConfigVersion) GetConfigVersionFilePath() string {
+func (v ConfigVersion) GetFilePath() string {
 	return filepath.Join(v.dirPath, defaultFileName)
 }
 
@@ -95,7 +95,7 @@ func (v *ConfigVersion) UpdateVersion(newVersion string, lastCommit string) ([]s
 	if err != nil {
 		return nil, err
 	}
-	modifiedFiles = append(modifiedFiles, v.GetConfigVersionFilePath())
+	modifiedFiles = append(modifiedFiles, v.GetFilePath())
 
 	for _, versionFile := range v.VersionFiles {
 		index := strings.Index(versionFile, ":")

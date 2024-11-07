@@ -10,6 +10,7 @@ import (
 
 type ConfigVersionWrapper struct {
 	DirPath       string                 `json:"dir_path" yaml:"dir_path"`
+	FilePath      string                 `json:"file_path" yaml:"file_path"`
 	ConfigVersion map[string]interface{} `json:"config_version" yaml:"config_version"`
 }
 
@@ -54,6 +55,7 @@ func printConfigVersionsPlain(wrapper Wrapper) (string, error) {
 	str := "config_versions:\n"
 	for _, cvw := range wrapper.ConfigVersionWrappers {
 		str += fmt.Sprintf("  dir_path: %s\n", cvw.DirPath)
+		str += fmt.Sprintf("  file_path: %s\n", cvw.FilePath)
 		str += "  config_version:\n"
 		for key, value := range cvw.ConfigVersion {
 			str += fmt.Sprintf("    %s: %s\n", key, value)
@@ -69,6 +71,7 @@ func configVersionFilter(configVersions []*ConfigVersion, fields []string, outpu
 	for _, configVersion := range configVersions {
 		cvw := ConfigVersionWrapper{
 			DirPath:       configVersion.GetDirPath(),
+			FilePath:      configVersion.GetFilePath(),
 			ConfigVersion: make(map[string]interface{}, 0),
 		}
 
