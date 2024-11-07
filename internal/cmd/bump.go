@@ -108,6 +108,12 @@ func bumpByConfig(configVersionPath string, createChangelog bool, incrementType 
 
 	// If the file has been modified, update the version
 	if incrementType != "none" {
+		// Running pre-bump scripts
+		err = config.RunHook("pre-bump")
+		if err != nil {
+			return []string{}, "", fmt.Errorf("pre bump scripts: %s", err)
+		}
+
 		newVersion, newVersionStr, err := bumpmanager.IncrementVersion(config.Version, incrementType)
 		if err != nil {
 			return []string{}, "", fmt.Errorf("increment version: %s", err)
@@ -125,12 +131,31 @@ func bumpByConfig(configVersionPath string, createChangelog bool, incrementType 
 			return []string{}, "", fmt.Errorf("update version: %s", err)
 		}
 
+		// Running post-bump scripts
+		err = config.RunHook("post-bump")
+		if err != nil {
+			return []string{}, "", fmt.Errorf("post bump scripts: %s", err)
+		}
+
 		if createChangelog {
+			// Running pre-changelog scripts
+			err = config.RunHook("pre-changelog")
+			if err != nil {
+				return []string{}, "", fmt.Errorf("pre changelog scripts: %s", err)
+			}
+
+			slog.Info("Generating changelog...")
 			changelogFilePath, err := changelog.Apply(config.GetDirPath(), config.Version, cvCommits)
 			if err != nil {
 				return []string{}, "", fmt.Errorf("update changelog: %s", err)
 			}
 			modifiedFiles = append(modifiedFiles, changelogFilePath)
+
+			// Running post-changelog scripts
+			err = config.RunHook("post-changelog")
+			if err != nil {
+				return []string{}, "", fmt.Errorf("post changelog scripts: %s", err)
+			}
 		}
 
 		slog.Info("Commit messages:")
