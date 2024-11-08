@@ -1,11 +1,15 @@
 package conventionalcommits
 
+// TODO: simplify this package using the new parser structure of package go-conventionalcommits
+
 import (
 	"fmt"
 	"log/slog"
-	"regexp"
 	"strings"
 	"time"
+
+	"github.com/leodido/go-conventionalcommits"
+	"github.com/leodido/go-conventionalcommits/parser"
 
 	"github.com/freepik-company/gommitizen/internal/git"
 )
@@ -73,23 +77,20 @@ func (cc ConventionalCommit) String() string {
 func ReadConventionalCommits(commits []git.Commit) []ConventionalCommit {
 	cvcommits := make([]ConventionalCommit, 0)
 	for _, commit := range commits {
-		re := regexp.MustCompile(`(?P<change_type>\w+)(\((?P<scope>\w+)\))?:\s*(?P<subject>.+?)\s*$`)
-		match := re.FindStringSubmatch(commit.Subject)
-		if match == nil {
-			slog.Debug(fmt.Sprintf("ignore commit, no cc by pattern: %s", commit.Subject))
+		opts := []conventionalcommits.MachineOption{
+			parser.WithTypes(conventionalcommits.TypesConventional),
+			parser.WithBestEffort(),
+		}
+		res, err := parser.NewMachine(opts...).Parse([]byte(commit.Subject))
+		if err != nil || !res.Ok() {
+			slog.Debug(fmt.Sprintf("ignore commit, no cc by parser: %s", commit.Subject))
 			continue
 		}
+		ccData := res.(*conventionalcommits.ConventionalCommit)
 
-		result := make(map[string]string)
-		for i, name := range re.SubexpNames() {
-			if i != 0 && name != "" {
-				result[name] = match[i]
-			}
-		}
-
-		commonChangeType := determinateCommonChangeType(result["change_type"])
+		commonChangeType := determinateCommonChangeType(ccData.Type)
 		if commonChangeType == "unknown" {
-			slog.Debug(fmt.Sprintf("ignore commit, no cc by common: %s", result["change_type"]))
+			slog.Debug(fmt.Sprintf("ignore commit, no cc by common: %s", ccData.Type))
 			continue
 		}
 
@@ -99,9 +100,9 @@ func ReadConventionalCommits(commits []git.Commit) []ConventionalCommit {
 			Date:      time.Time(commit.Date),
 
 			CommonChangeType: commonChangeType,
-			ChangeType:       result["change_type"],
-			Scope:            result["scope"],
-			Subject:          result["subject"],
+			ChangeType:       ccData.Type,
+			Scope:            *ccData.Scope,
+			Subject:          ccData.Description,
 		}
 
 		slog.Debug(fmt.Sprintf("cccommit: %v", cc))
