@@ -1,3 +1,22 @@
+## 0.8.0-a0 (2024-11-08)
+
+### Feat
+
+- hooks (#51)
+- **Makefile**: Introduce version bumping options and improve release process (#47)
+
+### Fix
+
+- output (#46)
+- **internal/config/config.go**: Filter config versions by specified fields (#45)
+
+### Refactor
+
+- cmd flags (#44)
+- **Makefile**: Rearrange build targets, use CURRENT_VERSION for go application
+- **internal/config/config.go**: Introduce field filtering in printConfigVersionsPlain function (#42)
+- **internal/config/config.go**: Introduce field filtering in printConfigVersionsPlain function (#42)
+
 ## 0.7.0 (2024-11-04)
 
 ### Feat
