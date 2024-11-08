@@ -35,10 +35,11 @@ release:
     owner: freepik-company
     name: gommitizen
   draft: false
-  prerelease: false
+  prerelease: auto
 
 dockers:
-  - image_templates:
+  - id: gommitizen
+    image_templates:
       - "ghcr.io/freepik-company/gommitizen:{{ .Version }}"
-      - "ghcr.io/freepik-company/gommitizen:latest"
+      - "{{ if not .Prerelease }}ghcr.io/freepik-company/gommitizen:latest{{ end }}"
     dockerfile: build/gommitizen/Dockerfile
