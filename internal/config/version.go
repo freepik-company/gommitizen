@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -14,10 +15,11 @@ import (
 type ConfigVersion struct {
 	dirPath string
 
-	Version      string   `json:"version" yaml:"version" plain:"version"`
-	Commit       string   `json:"commit" yaml:"commit" plain:"commit"`
-	VersionFiles []string `json:"version_files" yaml:"version_files" plain:"version_files"`
-	TagPrefix    string   `json:"tag_prefix" yaml:"tag_prefix" plain:"tag_prefix"`
+	Version      string            `json:"version" yaml:"version" plain:"version"`
+	Commit       string            `json:"commit" yaml:"commit" plain:"commit"`
+	VersionFiles []string          `json:"version_files" yaml:"version_files" plain:"version_files"`
+	TagPrefix    string            `json:"tag_prefix" yaml:"tag_prefix" plain:"tag_prefix"`
+	Hooks        map[string]string `json:"hooks,omitempty" yaml:"hooks,omitempty"`
 }
 
 func NewConfigVersion(dirPath string, version string, commit string, tagPrefix string) *ConfigVersion {
@@ -79,6 +81,24 @@ func (v ConfigVersion) GetTagVersion() string {
 		return v.TagPrefix + "_" + v.Version
 	}
 	return v.Version
+}
+
+func (v *ConfigVersion) RunHook(hookName string) error {
+	hook, ok := v.Hooks[hookName]
+	if !ok {
+		slog.Debug(fmt.Sprintf("hook %s not found", hookName))
+		return nil
+	}
+
+	output, err := exec.Command("bash", "-c", hook).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("run hook %s: %v", hookName, err)
+	}
+
+	// TODO: Pretty log info with colors
+	slog.Info(fmt.Sprintf("\n\033[32mHook %s output:\n%s\033[0m", hookName, string(output)))
+
+	return nil
 }
 
 func (v *ConfigVersion) UpdateVersion(newVersion string, lastCommit string) ([]string, error) {
