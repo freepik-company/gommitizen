@@ -1,11 +1,11 @@
 package git
 
 import (
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 func GetFirstCommit() (string, error) {
@@ -60,7 +60,7 @@ func GetLastCommit() (string, error) {
 
 // https://git-scm.com/docs/pretty-formats
 func GetCommits(fromCommit string, fromPath string) ([]Commit, error) {
-	pretty := `--pretty=format:'{"hash": "%H", "date": "%ad", "subject": "%s"}'`
+	pretty := `--pretty=format:'%H||%ad||%s'`
 	dateFormat := `--date=format-local:'%Y-%m-%dT%H:%M:%SZ'`
 	cmd := fmt.Sprintf(`git log %s %s %s.. -- %s`, pretty, dateFormat, fromCommit, fromPath)
 	slog.Debug(fmt.Sprintf("exec: %s", cmd))
@@ -73,12 +73,13 @@ func GetCommits(fromCommit string, fromPath string) ([]Commit, error) {
 	commits := make([]Commit, 0)
 	for _, line := range strings.Split(string(output), "\n") {
 		if len(line) > 0 {
+			hash, date, subject := strings.Split(line, "||")[0], strings.Split(line, "||")[1], strings.Split(line, "||")[2]
 
-			var commit Commit
-			err = json.Unmarshal([]byte(line), &commit)
+			dateTime, err := time.Parse("2006-01-02T15:04:05Z", date)
 			if err != nil {
-				return []Commit{}, fmt.Errorf("fail unmarshal json %s: %v", cmd, err)
+				return []Commit{}, fmt.Errorf("fail parsing date %s: %v", date, err)
 			}
+			commit := Commit{Hash: hash, Date: dateTime, Subject: subject}
 
 			slog.Debug(fmt.Sprintf("commit: %v", commit))
 			commits = append(commits, commit)
