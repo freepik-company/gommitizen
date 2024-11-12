@@ -16,11 +16,11 @@ type data struct {
 	Version string
 	Date    string
 
-	BreakingChanges []conventionalcommits.ConventionalCommit
-	Features        []conventionalcommits.ConventionalCommit
-	BugFixes        []conventionalcommits.ConventionalCommit
-	Refactors       []conventionalcommits.ConventionalCommit
-	Miscellaneous   []conventionalcommits.ConventionalCommit
+	BreakingChanges []conventionalcommits.CommitData
+	Features        []conventionalcommits.CommitData
+	BugFixes        []conventionalcommits.CommitData
+	Refactors       []conventionalcommits.CommitData
+	Miscellaneous   []conventionalcommits.CommitData
 }
 
 const changelogFileName = "CHANGELOG.md"
@@ -28,7 +28,7 @@ const changelogFileName = "CHANGELOG.md"
 //go:embed template.tpl
 var tplFile embed.FS
 
-func Apply(dirPath string, version string, commits []conventionalcommits.ConventionalCommit) (string, error) {
+func Apply(dirPath string, version string, commits []conventionalcommits.CommitData) (string, error) {
 	changelogFilePath := filepath.Join(dirPath, changelogFileName)
 	groupByCommonChangeType := groupByCommonChangeType(commits)
 
@@ -82,8 +82,8 @@ func prependToFile(changelogFilePath string, data bytes.Buffer) error {
 	return nil
 }
 
-func groupByCommonChangeType(commits []conventionalcommits.ConventionalCommit) map[string][]conventionalcommits.ConventionalCommit {
-	groups := make(map[string][]conventionalcommits.ConventionalCommit)
+func groupByCommonChangeType(commits []conventionalcommits.CommitData) map[string][]conventionalcommits.CommitData {
+	groups := make(map[string][]conventionalcommits.CommitData)
 
 	for _, item := range commits {
 		changeType := item.CommonChangeType

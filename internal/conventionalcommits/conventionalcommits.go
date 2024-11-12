@@ -22,7 +22,7 @@ type ChangeType struct {
 	Prefixes   []string
 }
 
-type ConventionalCommit struct {
+type CommitData struct {
 	ShortHash string
 	Hash      string
 	Date      time.Time
@@ -66,7 +66,7 @@ var (
 	}
 )
 
-func (cc ConventionalCommit) String() string {
+func (cc CommitData) String() string {
 	if cc.Scope == "" {
 		return fmt.Sprintf("%s: %s #%s", cc.ChangeType, cc.Subject, cc.ShortHash)
 	} else {
@@ -74,8 +74,8 @@ func (cc ConventionalCommit) String() string {
 	}
 }
 
-func ReadConventionalCommits(commits []git.Commit) []ConventionalCommit {
-	cvcommits := make([]ConventionalCommit, 0)
+func ReadConventionalCommits(commits []git.Commit) []CommitData {
+	cvcommits := make([]CommitData, 0)
 
 	opts := []conventionalcommits.MachineOption{
 		parser.WithTypes(conventionalcommits.TypesConventional),
@@ -96,7 +96,7 @@ func ReadConventionalCommits(commits []git.Commit) []ConventionalCommit {
 			continue
 		}
 
-		cc := ConventionalCommit{
+		cc := CommitData{
 			ShortHash: commit.AbbreviationHash(),
 			Hash:      string(commit.Hash),
 			Date:      time.Time(commit.Date),
@@ -124,7 +124,7 @@ func determinateCommonChangeType(changeType string) string {
 	return "unknown"
 }
 
-func DetermineIncrementType(commits []ConventionalCommit) string {
+func DetermineIncrementType(commits []CommitData) string {
 	var hasMinor, hasPatch bool
 
 	for _, commit := range commits {
