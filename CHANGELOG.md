@@ -1,3 +1,14 @@
+## 0.8.0-a3 (2024-11-12)
+
+### Fix
+
+- **conventionalcommits**: Update Commit Determination Functionality
+
+### Refactor
+
+- **internal/conventionalcommits/conventionalcommits.go**: Update common change determination logic
+- **internal/conventionalcommits/conventionalcommits.go**: Simplify package using new parser structure of go-conventionalcommits
+
 ## 0.8.0-a2 (2024-11-11)
 
 ## 0.8.0-a1 (2024-11-08)
