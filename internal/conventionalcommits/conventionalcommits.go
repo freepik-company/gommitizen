@@ -76,11 +76,13 @@ func (cc ConventionalCommit) String() string {
 
 func ReadConventionalCommits(commits []git.Commit) []ConventionalCommit {
 	cvcommits := make([]ConventionalCommit, 0)
+
+	opts := []conventionalcommits.MachineOption{
+		parser.WithTypes(conventionalcommits.TypesConventional),
+		parser.WithBestEffort(),
+	}
+
 	for _, commit := range commits {
-		opts := []conventionalcommits.MachineOption{
-			parser.WithTypes(conventionalcommits.TypesConventional),
-			parser.WithBestEffort(),
-		}
 		res, err := parser.NewMachine(opts...).Parse([]byte(commit.Subject))
 		if err != nil || !res.Ok() {
 			slog.Debug(fmt.Sprintf("ignore commit, no cc by parser: %s", commit.Subject))
