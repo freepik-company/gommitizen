@@ -17,9 +17,7 @@ bin: ./bin/gommitizen ## Build go application
 		-ldflags "-X github.com/freepik-company/gommitizen/internal/version.version=${CURRENT_VERSION}" \
 		-o $@ $<
 
-install: bin /usr/local/bin/gommitizen ## Install gommitizen
-
-/usr/local/bin/gommitizen:
+install: bin ## Install gommitizen
 	cp ./bin/gommitizen /usr/local/bin/gommitizen
 
 uninstall:  ## Uninstall gommitizen
