@@ -96,14 +96,19 @@ func ReadConventionalCommits(commits []git.Commit) []CommitData {
 			continue
 		}
 
+		scope := ""
+		if ccData.Scope != nil {
+			scope = *ccData.Scope
+		}
+
 		cc := CommitData{
 			ShortHash: commit.AbbreviationHash(),
-			Hash:      string(commit.Hash),
-			Date:      time.Time(commit.Date),
+			Hash:      commit.Hash,
+			Date:      commit.Date,
 
 			CommonChangeType: commonChangeType,
 			ChangeType:       ccData.Type,
-			Scope:            *ccData.Scope,
+			Scope:            scope,
 			Subject:          ccData.Description,
 		}
 
