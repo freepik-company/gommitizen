@@ -21,6 +21,8 @@ func getCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "Give a list of projects, their versions and other information",
+		Long: `Show information about the projects in the repository. It can show the version, the prefix, the commit 
+information and all the information saved in the config file.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if output != "json" && output != "yaml" && output != "plain" {
 				return fmt.Errorf("invalid output format: %s, supported values: json, yaml, plain", output)
@@ -50,6 +52,8 @@ func getAllCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "all",
 		Short: "Get all projects information",
+		Long: `Get all the information of the projects in the repository. It will show the version, the prefix, the commit
+information and all the information saved in the config file.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
 			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
@@ -63,6 +67,7 @@ func getVersionCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Get the version of the projects",
+		Long:  `Get the version of the projects in the repository. It will show the version of the projects and the prefix.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
 			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
@@ -76,6 +81,7 @@ func getPrefixCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "prefix",
 		Short: "Get the prefix of the projects",
+		Long:  `Get the prefix of the projects in the repository.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
 			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
@@ -89,6 +95,7 @@ func getCommitCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "commit",
 		Short: "Get the commit information of the projects",
+		Long:  `Get the commit information of the projects in the repository.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
 			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()

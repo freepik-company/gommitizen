@@ -23,6 +23,7 @@ func bumpCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bump",
 		Short: "Make a version bump",
+		Long:  `Increment the version of the project according to the conventional commits specification.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			increment, _ := cmd.Flags().GetString("increment")
 			if increment == "" {

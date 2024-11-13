@@ -17,6 +17,9 @@ func initCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Start a repository to use gommitizen",
+		Long: `Initialize the repository to use gommitizen. It will create a file with the version of the project and 
+the first commit of the project.`,
+		Example: `$ gommitizen init --prefix "my-prefix"`,
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
 			initRun(dirPath, prefix)

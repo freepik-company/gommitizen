@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/freepik-company/gommitizen/internal/docs"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -20,6 +21,7 @@ const (
 func Root() *cobra.Command {
 	var dirPath string
 	var debug bool
+	var genDocs bool
 
 	root := &cobra.Command{
 		Use:     "gommitizen",
@@ -28,6 +30,20 @@ func Root() *cobra.Command {
 		Long: `A commitizen implementation for Go with multi-project support.
 It only supports the conventional commits specification: https://www.conventionalcommits.org/en/v1.0.0/
 Currently it only supports the bump command, but it will support the commit command soon.`,
+		Example: `$ gommitizen init
+$ gommitizen bump --increment MAJOR
+$ gommitizen get all`,
+		Run: func(cmd *cobra.Command, args []string) {
+			if genDocs {
+				err := docs.GenMarkdown(cmd, os.Stdout)
+				if err != nil {
+					slog.Error(fmt.Sprintf("generating docs: %v", err))
+					os.Exit(1)
+				}
+				os.Exit(0)
+			}
+			cmd.Help()
+		},
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			var err error
 			dirPath, err = normalizePath(dirPath)
@@ -51,6 +67,12 @@ Currently it only supports the bump command, but it will support the commit comm
 
 	root.PersistentFlags().StringVarP(&dirPath, "directory", "d", "", "Select a directory to run the command")
 	root.PersistentFlags().BoolVar(&debug, cmdRootDebug, false, "Enable debug")
+
+	root.Flags().BoolVar(&genDocs, "gen-docs", false, "Generate the documentation for the project")
+	err := root.Flags().MarkHidden("gen-docs")
+	if err != nil {
+		return nil
+	}
 
 	root.AddCommand(initCmd())
 	root.AddCommand(bumpCmd())
