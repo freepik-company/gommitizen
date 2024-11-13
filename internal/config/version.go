@@ -2,6 +2,8 @@ package config
 
 import (
 	"bufio"
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -18,14 +20,14 @@ type ConfigVersion struct {
 	Version      string            `json:"version" yaml:"version" plain:"version"`
 	Commit       string            `json:"commit" yaml:"commit" plain:"commit"`
 	VersionFiles []string          `json:"version_files" yaml:"version_files" plain:"version_files"`
-	TagPrefix    string            `json:"tag_prefix" yaml:"tag_prefix" plain:"tag_prefix"`
+	Tag          string            `json:"tag" yaml:"tag" plain:"tag"`
 	Hooks        map[string]string `json:"hooks,omitempty" yaml:"hooks,omitempty"`
 }
 
-func NewConfigVersion(dirPath string, version string, commit string, tagPrefix string) *ConfigVersion {
-	nTagPrefix := tagPrefix
-	if len(tagPrefix) == 0 {
-		nTagPrefix = filepath.Base(dirPath)
+func NewConfigVersion(dirPath string, version string, commit string, tag string) *ConfigVersion {
+	nTag := tag
+	if len(tag) == 0 {
+		nTag = filepath.Base(dirPath)
 	}
 
 	return &ConfigVersion{
@@ -34,7 +36,7 @@ func NewConfigVersion(dirPath string, version string, commit string, tagPrefix s
 		Version:      version,
 		Commit:       commit,
 		VersionFiles: make([]string, 0),
-		TagPrefix:    nTagPrefix,
+		Tag:          nTag,
 	}
 }
 
@@ -76,9 +78,15 @@ func (v ConfigVersion) GetDirPath() string {
 	return v.dirPath
 }
 
-func (v ConfigVersion) GetTagVersion() string {
-	if len(v.TagPrefix) > 0 {
-		return v.TagPrefix + "_" + v.Version
+func (v ConfigVersion) GetBuild() string {
+	hash := sha1.Sum([]byte(v.dirPath))
+	hashString := hex.EncodeToString(hash[:])
+	return hashString[:7]
+}
+
+func (v ConfigVersion) GetGitTag() string {
+	if len(v.Tag) > 0 {
+		return fmt.Sprintf("%s+%s.%s", v.Version, v.Tag, v.GetBuild())
 	}
 	return v.Version
 }

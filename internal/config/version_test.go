@@ -1,7 +1,10 @@
 package config
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -12,9 +15,12 @@ func TestNewConfigVersion(t *testing.T) {
 	dirPath := "/tmp"
 	version := "1.0.0"
 	commit := "abc123"
-	prefix := "v"
+	tag := "v"
+	hash := sha1.Sum([]byte(dirPath))
+	hashString := hex.EncodeToString(hash[:])
+	gitTag := fmt.Sprintf("%s+%s.%s", version, tag, hashString[:7])
 
-	v := NewConfigVersion(dirPath, version, commit, prefix)
+	v := NewConfigVersion(dirPath, version, commit, tag)
 
 	if v.dirPath != dirPath {
 		t.Errorf("expected path %s, got %s", dirPath, v.dirPath)
@@ -25,8 +31,11 @@ func TestNewConfigVersion(t *testing.T) {
 	if v.Commit != commit {
 		t.Errorf("expected commit %s, got %s", commit, v.Commit)
 	}
-	if v.TagPrefix != prefix {
-		t.Errorf("expected prefix %s, got %s", prefix, v.TagPrefix)
+	if v.Tag != tag {
+		t.Errorf("expected tag %s, got %s", tag, v.Tag)
+	}
+	if v.GetGitTag() != gitTag {
+		t.Errorf("expected tag %s, got %s", gitTag, v.GetGitTag())
 	}
 	if len(v.VersionFiles) != 0 {
 		t.Errorf("expected empty VersionFiles, got %v", v.VersionFiles)
@@ -41,7 +50,7 @@ func TestRead(t *testing.T) {
 		Version:      "1.0.0",
 		Commit:       "abc123",
 		VersionFiles: []string{"file1", "file2"},
-		TagPrefix:    "v",
+		Tag:          "test",
 	}
 	data, err := json.Marshal(versionData)
 	if err != nil {
@@ -53,7 +62,12 @@ func TestRead(t *testing.T) {
 	}
 
 	// Leer el archivo JSON usando la función Read
-	v, err := ReadConfigVersion(tempDir)
+	list, err := FindConfigVersionFilePath(tempDir)
+	if err != nil {
+		t.Fatalf("error with find %v", err)
+	}
+
+	v, err := ReadConfigVersion(list[0])
 	if err != nil {
 		t.Fatalf("Read() error = %v", err)
 	}
@@ -64,7 +78,7 @@ func TestRead(t *testing.T) {
 		Version:      "1.0.0",
 		Commit:       "abc123",
 		VersionFiles: []string{"file1", "file2"},
-		TagPrefix:    "v",
+		Tag:          "test",
 	}
 	if !reflect.DeepEqual(v, expected) {
 		t.Errorf("Read() = %v, want %v", v, expected)

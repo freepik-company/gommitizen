@@ -93,7 +93,7 @@ func bumpByConfig(configVersionPath string, createChangelog bool, incrementType 
 	}
 
 	modifiedFiles := make([]string, 0)
-	tagVersion := config.GetTagVersion()
+	gitTag := config.GetGitTag()
 
 	slog.Info(fmt.Sprintf("Running bump in project %s", config.GetDirPath()))
 
@@ -168,13 +168,13 @@ func bumpByConfig(configVersionPath string, createChangelog bool, incrementType 
 			slog.Info(fmt.Sprintf(" - %s", file))
 		}
 
-		tagVersion = config.GetTagVersion()
-		slog.Info("New tags: " + tagVersion)
+		gitTag = config.GetGitTag()
+		slog.Info("New tags: " + gitTag)
 
 		slog.Info(fmt.Sprintf("Updated version in %s", config.GetDirPath()))
 	} else {
 		slog.Info(fmt.Sprintf("bump skipped in %s", config.GetDirPath()))
 	}
 	slog.Info("---")
-	return modifiedFiles, tagVersion, nil
+	return modifiedFiles, gitTag, nil
 }

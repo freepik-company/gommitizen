@@ -40,7 +40,7 @@ func getCmd() *cobra.Command {
 
 	cmd.AddCommand(getAllCmd())
 	cmd.AddCommand(getVersionCmd())
-	cmd.AddCommand(getPrefixCmd())
+	cmd.AddCommand(getTagCmd())
 	cmd.AddCommand(getCommitCmd())
 
 	return cmd
@@ -67,20 +67,20 @@ func getVersionCmd() *cobra.Command {
 			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
 			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
 			output := cmd.Parent().Flag(cmdGetOutput).Value.String()
-			projectsRun(dirPath, prefix, output, []string{"Version", "TagPrefix"})
+			projectsRun(dirPath, prefix, output, []string{"Version", "Tag"})
 		},
 	}
 }
 
-func getPrefixCmd() *cobra.Command {
+func getTagCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "prefix",
-		Short: "Get the prefix of the projects",
+		Use:   "tag",
+		Short: "Get the tag of the projects",
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
 			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
 			output := cmd.Parent().Flag(cmdGetOutput).Value.String()
-			projectsRun(dirPath, prefix, output, []string{"TagPrefix"})
+			projectsRun(dirPath, prefix, output, []string{"Tag"})
 		},
 	}
 }
@@ -93,7 +93,7 @@ func getCommitCmd() *cobra.Command {
 			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
 			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
 			output := cmd.Parent().Flag(cmdGetOutput).Value.String()
-			projectsRun(dirPath, prefix, output, []string{"Commit", "TagPrefix"})
+			projectsRun(dirPath, prefix, output, []string{"Commit", "Tag"})
 		},
 	}
 }
