@@ -8,6 +8,30 @@ import (
 	"github.com/spf13/pflag"
 )
 
+type DocData struct {
+	templateFile string
+
+	Title       string
+	Description string
+	RootCommand CmdData
+}
+
+type CmdData struct {
+	Name             string
+	LongDescription  string
+	ShortDescription string
+	Usage            string
+	Example          string
+	Flags            []FlagData
+	Commands         []CmdData
+}
+
+type FlagData struct {
+	Name        string
+	ShortHand   string
+	Description string
+}
+
 func generateCommandDocumentation(cmd *cobra.Command) CmdData {
 	var d CmdData
 

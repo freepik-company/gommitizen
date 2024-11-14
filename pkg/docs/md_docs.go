@@ -11,30 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type DocData struct {
-	templateFile string
-
-	Title       string
-	Description string
-	RootCommand CmdData
-}
-
-type CmdData struct {
-	Name             string
-	LongDescription  string
-	ShortDescription string
-	Usage            string
-	Example          string
-	Flags            []FlagData
-	Commands         []CmdData
-}
-
-type FlagData struct {
-	Name        string
-	ShortHand   string
-	Description string
-}
-
 // GenMarkdown creates markdown output.
 func GenMarkdown(cmd *cobra.Command, w io.Writer, tmplFile string) error {
 	cmd.InitDefaultHelpCmd()
