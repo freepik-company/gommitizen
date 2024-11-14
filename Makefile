@@ -41,6 +41,9 @@ release: bump ## Release new version
 test-release: ## Test release new version
 	goreleaser release --snapshot
 
+gen-docs: ## Generate docs
+	go run cmd/gen-docs/main.go > README.md
+
 clean: ## Clean up
 	rm -rf ./bin
 	rm -rf ./dist
