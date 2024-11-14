@@ -40,38 +40,27 @@ This will install the binary in the `/usr/local/bin` directory.
 
 ## Usage
 
-Next you can see the available commands and flags:
+Next a list of the available commands and their description:
 
-**Flags**:
 
-```
-      --debug      Enable debug
-  -d, --directory  Select a directory to run the command
-  -h, --help       help for gommitizen
-```
+**Available commands:**
+- `bump`: Make a version bump
 
-**Available commands**:
+- `get`: Give a list of projects, their versions and other information
 
-- **bump**: Make a version bump
-- **get**: Give a list of projects, their versions and other information
-- **init**: Start a repository to use gommitizen
+- `init`: Start a repository to use gommitizen
 
-### bump
+### bump command
 
 Increment the version of the project according to the conventional commits specification.
+**Flags:**
+- `-c`, `--changelog`: generate the changelog for the newest version
 
-```
-gommitizen bump [flags]
-```
+- `-i`, `--increment`: manually specify the desired increment {MAYOR, MINOR, PATCH}
 
-**Flags**:
 
-```
-  -c, --changelog  generate the changelog for the newest version
-  -i, --increment  manually specify the desired increment {MAYOR, MINOR, PATCH}
-```
 
-**Examples**:
+**Examples of usage:**
 
 To bump the version of a project, run:
 ```bash
@@ -94,64 +83,22 @@ gommitizen bump -i major
 ```
 
 
-### get
+
+
+
+
+### get command
 
 Show information about the projects in the repository. It can show the version, the prefix, the commit 
 information and all the information saved in the config file.
+**Flags:**
+- `-o`, `--output`: Select the output format {json, yaml, plain}
 
-```
-gommitizen get
-gommitizen get [command]
-```
+- `-p`, `--prefix`: A prefix to look for a project to show information
 
-**Flags**:
 
-```
-  -o, --output  Select the output format {json, yaml, plain}
-  -p, --prefix  A prefix to look for a project to show information
-```
 
-**Available commands**:
-
-- **all**: Get all projects information
-- **commit**: Get the commit information of the projects
-- **prefix**: Get the prefix of the projects
-- **version**: Get the version of the projects
-
-#### all
-
-Get all the information of the projects in the repository. It will show the version, the prefix, the commit
-information and all the information saved in the config file.
-
-```
-gommitizen get all
-```
-
-#### commit
-
-Get the commit information of the projects in the repository.
-
-```
-gommitizen get commit
-```
-
-#### prefix
-
-Get the prefix of the projects in the repository.
-
-```
-gommitizen get prefix
-```
-
-#### version
-
-Get the version of the projects in the repository. It will show the version of the projects and the prefix.
-
-```
-gommitizen get version
-```
-
-**Examples**:
+**Examples of usage:**
 
 To show all information in yaml format, run:
 ```bash
@@ -167,28 +114,42 @@ gommitizen get version
 ```
 
 
-### init
+
+
+**Subcommands:**
+
+
+
+- `all`: Get all the information of the projects in the repository. It will show the version, the prefix, the commit
+information and all the information saved in the config file.
+
+- `commit`: Get the commit information of the projects in the repository.
+
+- `prefix`: Get the prefix of the projects in the repository.
+
+- `version`: Get the version of the projects in the repository. It will show the version of the projects and the prefix.
+
+### init command
 
 Initialize the repository to use gommitizen. It will create a file with the version of the project and 
 the first commit of the project.
+**Flags:**
+- `-p`, `--prefix`: Select a prefix for the version file
 
-```
-gommitizen init [flags]
-```
 
-**Flags**:
 
-```
-  -p, --prefix  Select a prefix for the version file
-```
-
-**Examples**:
+**Examples of usage:**
 
 To initialize the versioning of a project, run: 
 ```bash
 gommitizen init -d <directory> -p <prefix>`
 ```
 This will create a .version.json file in the given directory with the version 0.0.0.
+
+
+
+
+
 
 ### Docker
 
@@ -199,10 +160,10 @@ docker run --rm \
   -e GIT_USER_NAME=user.name \
   -e GIT_USER_EMAIL=user@email \
   -v $(pwd):/source \
-  ghcr.io/freepik-company/gommitizen:<tag> [flags]
+  ghcr.io/freepik-company/gommitizen:<tag> [retrieveCommandFlags]
 ```
 
-Replace  `<tag>` with the tag of the image you want to use. Select the command and flags you want to use.
+Replace  `<tag>` with the tag of the image you want to use. Select the command and retrieveCommandFlags you want to use.
 
 Example:
 ```bash
@@ -210,7 +171,7 @@ docker run --rm \
   -e GIT_USER_NAME=user.name \
   -e GIT_USER_EMAIL=user@email \
   -v $(pwd):/source \
-  ghcr.io/freepik-company/gommitizen:latest [flags]
+  ghcr.io/freepik-company/gommitizen:latest [retrieveCommandFlags]
 ```
 
 ## Types of commits
@@ -288,7 +249,7 @@ There are four hooks available:
 - `pre-changelog`: Runs before the changelog generation.
 - `post-changelog`: Runs after the changelog generation.
 
-The hooks are shell commands that are executed in the root of the project. These are all optional fields.
+The hooks are shell getCommands that are executed in the root of the project. These are all optional fields.
 
 ## Development
 
