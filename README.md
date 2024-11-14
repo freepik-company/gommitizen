@@ -41,9 +41,6 @@ This will install the binary in the `/usr/local/bin` directory.
 ## Usage
 
 Next a list of the available commands and their description:
-
-
-**Available commands:**
 - `bump`: Make a version bump
 
 - `get`: Give a list of projects, their versions and other information
@@ -53,6 +50,7 @@ Next a list of the available commands and their description:
 ### bump command
 
 Increment the version of the project according to the conventional commits specification.
+
 **Flags:**
 - `-c`, `--changelog`: generate the changelog for the newest version
 
@@ -91,6 +89,7 @@ gommitizen bump -i major
 
 Show information about the projects in the repository. It can show the version, the prefix, the commit 
 information and all the information saved in the config file.
+
 **Flags:**
 - `-o`, `--output`: Select the output format {json, yaml, plain}
 
@@ -133,6 +132,7 @@ information and all the information saved in the config file.
 
 Initialize the repository to use gommitizen. It will create a file with the version of the project and 
 the first commit of the project.
+
 **Flags:**
 - `-p`, `--prefix`: Select a prefix for the version file
 
@@ -209,7 +209,7 @@ The version files are structured as follows:
         "other-version.txt:version",
         "a-file-that-need-a-regex.txt:^version=([0-9]+\\.[0-9]+\\.[0-9]+)$"
     ],
-    "prefix": ""
+    "prefix": "my_prj"
 }
 ```
 

@@ -39,9 +39,6 @@ This will install the binary in the `/usr/local/bin` directory.
 
 Next a list of the available commands and their description:
 
-{{ if .RootCommand.Commands }}
-**Available commands:**
-{{- end }}
 {{- range .RootCommand.Commands }}
 - `{{ .Name }}`: {{ .ShortDescription }}
 {{ end }}
@@ -52,6 +49,7 @@ Next a list of the available commands and their description:
 {{ .LongDescription }}
 
 {{- if .Flags }}
+
 **Flags:**
 {{- end }}
 
