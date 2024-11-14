@@ -2,9 +2,7 @@ package docs
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"io"
-	"log/slog"
 	"os"
 	"text/template"
 
@@ -29,11 +27,11 @@ func GenMarkdown(cmd *cobra.Command, w io.Writer, tmplFile string) error {
 	}
 
 	// Debug
-	yamlData, err := yaml.Marshal(data)
-	if err != nil {
-		return fmt.Errorf("failed to marshal data to YAML: %w", err)
-	}
-	slog.Info(string(yamlData))
+	//yamlData, err := yaml.Marshal(data)
+	//if err != nil {
+	//	return fmt.Errorf("failed to marshal data to YAML: %w", err)
+	//}
+	//slog.Info(string(yamlData))
 	// Debug
 
 	// Generate the documentation
