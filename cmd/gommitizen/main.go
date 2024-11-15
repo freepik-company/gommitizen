@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/freepik-company/gommitizen/internal/cmd"
+	"github.com/freepik-company/gommitizen/internal/pkg/cmd"
 )
 
 func main() {

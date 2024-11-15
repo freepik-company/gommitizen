@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/freepik-company/gommitizen/internal/conventionalcommits"
+	"github.com/freepik-company/gommitizen/internal/app/gommitizen/conventionalcommits"
 )
 
 type data struct {
