@@ -54,7 +54,7 @@ Increment the version of the project according to the conventional commits speci
 **Flags:**
 - `-c`, `--changelog`: generate the changelog for the newest version
 
-- `-i`, `--increment`: manually specify the desired increment {MAYOR, MINOR, PATCH}
+- `-i`, `--increment`: manually specify the desired increment {MAJOR, MINOR, PATCH}
 
 
 
@@ -74,7 +74,7 @@ gommitizen bump -c
 # This will bump the version of the projects and generate a changelog with the changes made since the last version.
 
 # If you want to bump the version of project to a major version, run:
-gommitizen bump -i major
+gommitizen bump -i MAJOR
 
 ```
 

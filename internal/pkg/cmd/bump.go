@@ -34,7 +34,7 @@ func bumpCmd() *cobra.Command {
 			"gommitizen bump -c\n" +
 			"# This will bump the version of the projects and generate a changelog with the changes made since the last version.\n\n" +
 			"# If you want to bump the version of project to a major version, run:\n" +
-			"gommitizen bump -i major\n",
+			"gommitizen bump -i MAJOR\n",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			increment, _ := cmd.Flags().GetString("increment")
 			if increment == "" {
@@ -58,7 +58,7 @@ func bumpCmd() *cobra.Command {
 	}
 
 	cmd.Flags().BoolVarP(&createChangelog, "changelog", "c", false, "generate the changelog for the newest version")
-	cmd.Flags().StringVarP(&incrementType, "increment", "i", "", "manually specify the desired increment {MAYOR, MINOR, PATCH}")
+	cmd.Flags().StringVarP(&incrementType, "increment", "i", "", "manually specify the desired increment {MAJOR, MINOR, PATCH}")
 
 	return cmd
 }
