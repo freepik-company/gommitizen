@@ -6,7 +6,7 @@ import (
 
 	"github.com/Masterminds/semver"
 
-	"github.com/freepik-company/gommitizen/internal/git"
+	"github.com/freepik-company/gommitizen/internal/app/gommitizen/git"
 )
 
 func IncrementVersion(currentVersionStr string, incType string) (string, string, error) {

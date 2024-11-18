@@ -97,7 +97,11 @@ func (v *ConfigVersion) RunHook(hookName string) error {
 	}
 
 	// TODO: Pretty log info with colors
-	slog.Info(fmt.Sprintf("\n\033[32mHook %s output:\n%s\033[0m", hookName, string(output)))
+	if len(output) > 0 {
+		slog.Info(fmt.Sprintf("\n\033[32mHook %s output:\n%s\033[0m", hookName, string(output)))
+	} else {
+		slog.Info(fmt.Sprintf("\n\033[32mLaunch hook %s\n\033[0m", hookName))
+	}
 
 	return nil
 }

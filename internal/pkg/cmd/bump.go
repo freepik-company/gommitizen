@@ -8,11 +8,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/freepik-company/gommitizen/internal/bumpmanager"
-	"github.com/freepik-company/gommitizen/internal/changelog"
-	"github.com/freepik-company/gommitizen/internal/config"
-	"github.com/freepik-company/gommitizen/internal/conventionalcommits"
-	"github.com/freepik-company/gommitizen/internal/git"
+	"github.com/freepik-company/gommitizen/internal/app/gommitizen/bumpmanager"
+	"github.com/freepik-company/gommitizen/internal/app/gommitizen/changelog"
+	configObj "github.com/freepik-company/gommitizen/internal/app/gommitizen/config"
+	"github.com/freepik-company/gommitizen/internal/app/gommitizen/conventionalcommits"
+	"github.com/freepik-company/gommitizen/internal/app/gommitizen/git"
 )
 
 func bumpCmd() *cobra.Command {
@@ -23,6 +23,27 @@ func bumpCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bump",
 		Short: "Make a version bump",
+		Long:  `Increment the version of the project according to the conventional commits specification.`,
+		Example: "To bump the version of a project, run:\n" +
+			"```bash\n" +
+			"gommitizen bump\n" +
+			"```\n" +
+			"This will bump the version of all projects in the current directory.\n" +
+			"If you want to bump the version of a specific project, run:\n" +
+			"```bash\n" +
+			"gommitizen bump -d <directory>\n" +
+			"```\n" +
+			"This will bump the version of the project in the given directory.\n" +
+			"If you want to bump the version of projects and generate a changelog, run:\n" +
+			"```bash\n" +
+			"gommitizen bump -c\n" +
+			"```\n" +
+			"This will bump the version of the projects and generate a changelog with the changes made since the last " +
+			"version.\n" +
+			"If you want to bump the version of project to a major version, run:\n" +
+			"```bash\n" +
+			"gommitizen bump -i major\n" +
+			"```\n",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			increment, _ := cmd.Flags().GetString("increment")
 			if increment == "" {
@@ -56,7 +77,7 @@ func bumpRun(dirPath string, createChangelog bool, incrementType string) {
 		slog.Info(fmt.Sprintf("Bumping version with increment: %s", incrementType))
 	}
 
-	configVersionPaths, err := config.FindConfigVersionFilePath(dirPath)
+	configVersionPaths, err := configObj.FindConfigVersionFilePath(dirPath)
 	if err != nil {
 		slog.Error(fmt.Sprintf("find config version paths: %v", err))
 		os.Exit(1)
@@ -86,7 +107,7 @@ func bumpRun(dirPath string, createChangelog bool, incrementType string) {
 }
 
 func bumpByConfig(configVersionPath string, createChangelog bool, incrementType string) ([]string, string, error) {
-	config, err := config.ReadConfigVersion(configVersionPath)
+	config, err := configObj.ReadConfigVersion(configVersionPath)
 	if err != nil {
 		slog.Info(fmt.Sprintf("Skipping file: %s, %v", configVersionPath, err))
 		return []string{}, "", nil

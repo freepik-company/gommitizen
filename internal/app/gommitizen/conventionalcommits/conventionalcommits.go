@@ -11,7 +11,7 @@ import (
 	"github.com/leodido/go-conventionalcommits"
 	"github.com/leodido/go-conventionalcommits/parser"
 
-	"github.com/freepik-company/gommitizen/internal/git"
+	"github.com/freepik-company/gommitizen/internal/app/gommitizen/git"
 )
 
 // https://www.conventionalcommits.org/en/v1.0.0/

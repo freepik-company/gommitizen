@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/freepik-company/gommitizen/internal/config"
+	configObj "github.com/freepik-company/gommitizen/internal/app/gommitizen/config"
 )
 
 const (
@@ -21,6 +21,20 @@ func getCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "Give a list of projects, their versions and other information",
+		Long: `Show information about the projects in the repository. It can show the version, the prefix, the commit 
+information and all the information saved in the config file.`,
+		Example: "To show all information in yaml format, run:\n" +
+			"```bash\n" +
+			"gommitizen get all -o yaml\n" +
+			"```\n" +
+			"To show the version of the projects in plain format, run:\n" +
+			"```bash\n" +
+			"gommitizen get version -o plain\n" +
+			"```\n" +
+			"or just:\n" +
+			"```bash\n" +
+			"gommitizen get version\n" +
+			"```\n",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if output != "json" && output != "yaml" && output != "plain" {
 				return fmt.Errorf("invalid output format: %s, supported values: json, yaml, plain", output)
@@ -35,8 +49,8 @@ func getCmd() *cobra.Command {
 		},
 	}
 
-	cmd.PersistentFlags().StringVarP(&output, getOutputFlagName, "o", "plain", "select the output format {json, yaml, plain}")
-	cmd.PersistentFlags().StringVarP(&prefix, getPrefixFlagName, "p", "", "select a prefix to look for projects. Don't use with --directory")
+	cmd.PersistentFlags().StringVarP(&output, getOutputFlagName, "o", "plain", "Select the output format {json, yaml, plain}")
+	cmd.PersistentFlags().StringVarP(&prefix, getPrefixFlagName, "p", "", "A prefix to look for a project to show information")
 
 	cmd.AddCommand(getAllCmd())
 	cmd.AddCommand(getVersionCmd())
@@ -50,6 +64,8 @@ func getAllCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "all",
 		Short: "Get all projects information",
+		Long: `Get all the information of the projects in the repository. It will show the version, the prefix, the commit
+information and all the information saved in the config file.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
 			prefix := cmd.Parent().Flag(getPrefixFlagName).Value.String()
@@ -63,6 +79,7 @@ func getVersionCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Get the version of the projects",
+		Long:  `Get the version of the projects in the repository. It will show the version of the projects and the prefix.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
 			prefix := cmd.Parent().Flag(getPrefixFlagName).Value.String()
@@ -76,6 +93,7 @@ func getPrefixCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "prefix",
 		Short: "Get the prefix of the projects",
+		Long:  `Get the prefix of the projects in the repository.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
 			prefix := cmd.Parent().Flag(getPrefixFlagName).Value.String()
@@ -89,6 +107,7 @@ func getCommitCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "commit",
 		Short: "Get the commit information of the projects",
+		Long:  `Get the commit information of the projects in the repository.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
 			prefix := cmd.Parent().Flag(getPrefixFlagName).Value.String()
@@ -103,13 +122,13 @@ func projectsRun(dirPath string, prefix string, output string, filter []string) 
 	var err error
 
 	if prefix == "" {
-		configVersionPaths, err = config.FindConfigVersionFilePath(dirPath)
+		configVersionPaths, err = configObj.FindConfigVersionFilePath(dirPath)
 		if err != nil {
 			slog.Error(fmt.Sprintf("finding config version file path: %v", err))
 			os.Exit(1)
 		}
 	} else {
-		configVersionPaths, err = config.FindConfigVersionFilePathByPrefix(dirPath, prefix)
+		configVersionPaths, err = configObj.FindConfigVersionFilePathByPrefix(dirPath, prefix)
 		if err != nil {
 			slog.Error(fmt.Sprintf("finding config version file path by prefix: %v", err))
 			os.Exit(1)
@@ -121,9 +140,9 @@ func projectsRun(dirPath string, prefix string, output string, filter []string) 
 		os.Exit(0)
 	}
 
-	var configVersions []*config.ConfigVersion
+	var configVersions []*configObj.ConfigVersion
 	for _, configVersionPath := range configVersionPaths {
-		configVersionFile, err := config.ReadConfigVersion(configVersionPath)
+		configVersionFile, err := configObj.ReadConfigVersion(configVersionPath)
 		if err != nil {
 			slog.Error(fmt.Sprintf("reading configVersionFile version: %v", err))
 			continue
@@ -131,7 +150,7 @@ func projectsRun(dirPath string, prefix string, output string, filter []string) 
 		configVersions = append(configVersions, configVersionFile)
 	}
 
-	str, err := config.PrintConfigVersions(configVersions, filter, output)
+	str, err := configObj.PrintConfigVersions(configVersions, filter, output)
 	if err != nil {
 		slog.Error(fmt.Sprintf("printing config versions: %v", err))
 		os.Exit(1)

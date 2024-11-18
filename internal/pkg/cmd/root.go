@@ -8,8 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/freepik-company/gommitizen/internal/prettylogconsole"
-	"github.com/freepik-company/gommitizen/internal/version"
+	"github.com/freepik-company/gommitizen/internal/app/gommitizen/prettylogconsole"
+	"github.com/freepik-company/gommitizen/internal/app/gommitizen/version"
 )
 
 const (
@@ -25,9 +25,10 @@ func Root() *cobra.Command {
 		Use:     "gommitizen",
 		Version: version.GetVersion(),
 		Short:   "A commitizen implementation for Go with multi-project support",
-		Long: `A commitizen implementation for Go with multi-project support.
-It only supports the conventional commits specification: https://www.conventionalcommits.org/en/v1.0.0/
-Currently it only supports the bump command, but it will support the commit command soon.`,
+		Long: `Gommitizen is a command-line tool that helps manage the versioning of a software project. This tool is 
+able to manage serveral projects in a same repository with their different versions each. It supports the conventional 
+commits specification (https://www.conventionalcommits.org/en/v1.0.0/) to determine the increment of the version for 
+each project.`,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			var err error
 			dirPath, err = normalizePath(dirPath)

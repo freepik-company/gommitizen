@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/freepik-company/gommitizen/internal/config"
-	"github.com/freepik-company/gommitizen/internal/git"
+	"github.com/freepik-company/gommitizen/internal/app/gommitizen/config"
+	"github.com/freepik-company/gommitizen/internal/app/gommitizen/git"
 )
 
 const (
@@ -22,6 +22,13 @@ func initCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Start a repository to use gommitizen",
+		Long: `Initialize the repository to use gommitizen. It will create a file with the version of the project and 
+the first commit of the project.`,
+		Example: "To initialize the versioning of a project, run: \n" +
+			"```bash\n" +
+			"gommitizen init -d <directory> -p <prefix>`\n" +
+			"```\n" +
+			"This will create a .version.json file in the given directory with the version 0.0.0.",
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
 			initRun(dirPath, prefix, updateChangelogOnBump)
