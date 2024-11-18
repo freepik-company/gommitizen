@@ -23,18 +23,12 @@ func getCmd() *cobra.Command {
 		Short: "Give a list of projects, their versions and other information",
 		Long: `Show information about the projects in the repository. It can show the version, the prefix, the commit 
 information and all the information saved in the config file.`,
-		Example: "To show all information in yaml format, run:\n" +
-			"```bash\n" +
+		Example: "# To show all information in yaml format, run:\n" +
 			"gommitizen get all -o yaml\n" +
-			"```\n" +
-			"To show the version of the projects in plain format, run:\n" +
-			"```bash\n" +
+			"# To show the version of the projects in plain format, run:\n" +
 			"gommitizen get version -o plain\n" +
-			"```\n" +
-			"or just:\n" +
-			"```bash\n" +
-			"gommitizen get version\n" +
-			"```\n",
+			"# or just:\n" +
+			"gommitizen get version\n",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if output != "json" && output != "yaml" && output != "plain" {
 				return fmt.Errorf("invalid output format: %s, supported values: json, yaml, plain", output)

@@ -24,11 +24,9 @@ func initCmd() *cobra.Command {
 		Short: "Start a repository to use gommitizen",
 		Long: `Initialize the repository to use gommitizen. It will create a file with the version of the project and 
 the first commit of the project.`,
-		Example: "To initialize the versioning of a project, run: \n" +
-			"```bash\n" +
+		Example: "# To initialize the versioning of a project, run: \n" +
 			"gommitizen init -d <directory> -p <prefix>`\n" +
-			"```\n" +
-			"This will create a .version.json file in the given directory with the version 0.0.0.",
+			"# This will create a .version.json file in the given directory with the version 0.0.0.",
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
 			initRun(dirPath, prefix, updateChangelogOnBump)

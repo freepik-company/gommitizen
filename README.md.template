@@ -60,7 +60,9 @@ Next a list of the available commands and their description:
 {{ if .Example }}
 **Examples of usage:**
 
+```shell
 {{ .Example }}
+```
 {{ end }}
 
 {{ if .Commands }}

@@ -24,26 +24,17 @@ func bumpCmd() *cobra.Command {
 		Use:   "bump",
 		Short: "Make a version bump",
 		Long:  `Increment the version of the project according to the conventional commits specification.`,
-		Example: "To bump the version of a project, run:\n" +
-			"```bash\n" +
+		Example: "# To bump the version of a project, run:\n" +
 			"gommitizen bump\n" +
-			"```\n" +
-			"This will bump the version of all projects in the current directory.\n" +
-			"If you want to bump the version of a specific project, run:\n" +
-			"```bash\n" +
+			"# This will bump the version of all projects in the current directory.\n\n" +
+			"# If you want to bump the version of a specific project, run:\n" +
 			"gommitizen bump -d <directory>\n" +
-			"```\n" +
-			"This will bump the version of the project in the given directory.\n" +
-			"If you want to bump the version of projects and generate a changelog, run:\n" +
-			"```bash\n" +
+			"# This will bump the version of the project in the given directory.\n\n" +
+			"# If you want to bump the version of projects and generate a changelog, run:\n" +
 			"gommitizen bump -c\n" +
-			"```\n" +
-			"This will bump the version of the projects and generate a changelog with the changes made since the last " +
-			"version.\n" +
-			"If you want to bump the version of project to a major version, run:\n" +
-			"```bash\n" +
-			"gommitizen bump -i major\n" +
-			"```\n",
+			"# This will bump the version of the projects and generate a changelog with the changes made since the last version.\n\n" +
+			"# If you want to bump the version of project to a major version, run:\n" +
+			"gommitizen bump -i major\n",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			increment, _ := cmd.Flags().GetString("increment")
 			if increment == "" {
