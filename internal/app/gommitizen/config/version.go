@@ -15,11 +15,12 @@ import (
 type ConfigVersion struct {
 	dirPath string
 
-	Version      string            `json:"version" yaml:"version" plain:"version"`
-	Commit       string            `json:"commit" yaml:"commit" plain:"commit"`
-	VersionFiles []string          `json:"version_files" yaml:"version_files" plain:"version_files"`
-	TagPrefix    string            `json:"tag_prefix" yaml:"tag_prefix" plain:"tag_prefix"`
-	Hooks        map[string]string `json:"hooks,omitempty" yaml:"hooks,omitempty"`
+	Version               string            `json:"version" yaml:"version" plain:"version"`
+	Commit                string            `json:"commit" yaml:"commit" plain:"commit"`
+	VersionFiles          []string          `json:"version_files" yaml:"version_files" plain:"version_files"`
+	TagPrefix             string            `json:"tag_prefix" yaml:"tag_prefix" plain:"tag_prefix"`
+	Hooks                 map[string]string `json:"hooks,omitempty" yaml:"hooks,omitempty"`
+	UpdateChangelogOnBump bool              `json:"update_changelog_on_bump,omitempty" yaml:"update_changelog_on_bump,omitempty" plain:"update_changelog_on_bump,omitempty"`
 }
 
 func NewConfigVersion(dirPath string, version string, commit string, tagPrefix string) *ConfigVersion {

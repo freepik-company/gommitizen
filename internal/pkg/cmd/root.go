@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	cmdRootDirPath = "directory"
-	cmdRootDebug   = "debug"
+	rootDirPathFlagName = "directory"
+	rootDebugFlagName   = "debug"
 )
 
 func Root() *cobra.Command {
@@ -51,7 +51,7 @@ each project.`,
 	}
 
 	root.PersistentFlags().StringVarP(&dirPath, "directory", "d", "", "Select a directory to run the command")
-	root.PersistentFlags().BoolVar(&debug, cmdRootDebug, false, "Enable debug")
+	root.PersistentFlags().BoolVar(&debug, rootDebugFlagName, false, "Enable debug")
 
 	root.AddCommand(initCmd())
 	root.AddCommand(bumpCmd())

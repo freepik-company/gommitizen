@@ -61,7 +61,7 @@ func bumpCmd() *cobra.Command {
 			)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
+			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
 			bumpRun(dirPath, createChangelog, strings.ToLower(incrementType))
 		},
 	}

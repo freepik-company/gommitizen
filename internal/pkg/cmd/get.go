@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	cmdGetPrefix = "prefix"
-	cmdGetOutput = "output"
+	getPrefixFlagName = "prefix"
+	getOutputFlagName = "output"
 )
 
 func getCmd() *cobra.Command {
@@ -49,8 +49,8 @@ information and all the information saved in the config file.`,
 		},
 	}
 
-	cmd.PersistentFlags().StringVarP(&output, cmdGetOutput, "o", "plain", "Select the output format {json, yaml, plain}")
-	cmd.PersistentFlags().StringVarP(&prefix, cmdGetPrefix, "p", "", "A prefix to look for a project to show information")
+	cmd.PersistentFlags().StringVarP(&output, getOutputFlagName, "o", "plain", "Select the output format {json, yaml, plain}")
+	cmd.PersistentFlags().StringVarP(&prefix, getPrefixFlagName, "p", "", "A prefix to look for a project to show information")
 
 	cmd.AddCommand(getAllCmd())
 	cmd.AddCommand(getVersionCmd())
@@ -67,9 +67,9 @@ func getAllCmd() *cobra.Command {
 		Long: `Get all the information of the projects in the repository. It will show the version, the prefix, the commit
 information and all the information saved in the config file.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
-			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
-			output := cmd.Parent().Flag(cmdGetOutput).Value.String()
+			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
+			prefix := cmd.Parent().Flag(getPrefixFlagName).Value.String()
+			output := cmd.Parent().Flag(getOutputFlagName).Value.String()
 			projectsRun(dirPath, prefix, output, nil)
 		},
 	}
@@ -81,9 +81,9 @@ func getVersionCmd() *cobra.Command {
 		Short: "Get the version of the projects",
 		Long:  `Get the version of the projects in the repository. It will show the version of the projects and the prefix.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
-			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
-			output := cmd.Parent().Flag(cmdGetOutput).Value.String()
+			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
+			prefix := cmd.Parent().Flag(getPrefixFlagName).Value.String()
+			output := cmd.Parent().Flag(getOutputFlagName).Value.String()
 			projectsRun(dirPath, prefix, output, []string{"Version", "TagPrefix"})
 		},
 	}
@@ -95,9 +95,9 @@ func getPrefixCmd() *cobra.Command {
 		Short: "Get the prefix of the projects",
 		Long:  `Get the prefix of the projects in the repository.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
-			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
-			output := cmd.Parent().Flag(cmdGetOutput).Value.String()
+			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
+			prefix := cmd.Parent().Flag(getPrefixFlagName).Value.String()
+			output := cmd.Parent().Flag(getOutputFlagName).Value.String()
 			projectsRun(dirPath, prefix, output, []string{"TagPrefix"})
 		},
 	}
@@ -109,9 +109,9 @@ func getCommitCmd() *cobra.Command {
 		Short: "Get the commit information of the projects",
 		Long:  `Get the commit information of the projects in the repository.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
-			prefix := cmd.Parent().Flag(cmdGetPrefix).Value.String()
-			output := cmd.Parent().Flag(cmdGetOutput).Value.String()
+			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
+			prefix := cmd.Parent().Flag(getPrefixFlagName).Value.String()
+			output := cmd.Parent().Flag(getOutputFlagName).Value.String()
 			projectsRun(dirPath, prefix, output, []string{"Commit", "TagPrefix"})
 		},
 	}

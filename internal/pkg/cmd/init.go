@@ -11,8 +11,13 @@ import (
 	"github.com/freepik-company/gommitizen/internal/app/gommitizen/git"
 )
 
+const (
+	initBumpFlagName = "bump-changelog"
+)
+
 func initCmd() *cobra.Command {
 	var prefix string
+	var updateChangelogOnBump bool
 
 	cmd := &cobra.Command{
 		Use:   "init",
@@ -25,17 +30,18 @@ the first commit of the project.`,
 			"```\n" +
 			"This will create a .version.json file in the given directory with the version 0.0.0.",
 		Run: func(cmd *cobra.Command, args []string) {
-			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
-			initRun(dirPath, prefix)
+			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
+			initRun(dirPath, prefix, updateChangelogOnBump)
 		},
 	}
 
 	cmd.Flags().StringVarP(&prefix, "prefix", "p", "", "Select a prefix for the version file")
+	cmd.Flags().BoolVar(&updateChangelogOnBump, initBumpFlagName, false, "Update changelog on bump")
 
 	return cmd
 }
 
-func initRun(dirPath, prefix string) {
+func initRun(dirPath, prefix string, updateChangelogOnBump bool) {
 	commit, err := git.GetFirstCommit()
 	if err != nil {
 		slog.Error(fmt.Sprintf("first commit: %v", err))
@@ -43,6 +49,8 @@ func initRun(dirPath, prefix string) {
 	}
 
 	config := config.NewConfigVersion(dirPath, "0.0.0", commit, prefix)
+	config.UpdateChangelogOnBump = updateChangelogOnBump
+
 	err = config.Save()
 	if err != nil {
 		slog.Error(fmt.Sprintf("config: %v", err))
