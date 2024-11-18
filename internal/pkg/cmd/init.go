@@ -16,7 +16,7 @@ const (
 )
 
 func initCmd() *cobra.Command {
-	var prefix string
+	var alias string
 	var updateChangelogOnBump bool
 
 	cmd := &cobra.Command{
@@ -26,29 +26,29 @@ func initCmd() *cobra.Command {
 the first commit of the project.`,
 		Example: "To initialize the versioning of a project, run: \n" +
 			"```bash\n" +
-			"gommitizen init -d <directory> -p <prefix>`\n" +
+			"gommitizen init -d <directory> -a <alias>`\n" +
 			"```\n" +
 			"This will create a .version.json file in the given directory with the version 0.0.0.",
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
-			initRun(dirPath, prefix, updateChangelogOnBump)
+			initRun(dirPath, alias, updateChangelogOnBump)
 		},
 	}
 
-	cmd.Flags().StringVarP(&prefix, "prefix", "p", "", "Select a prefix for the version file")
+	cmd.Flags().StringVarP(&alias, "alias", "a", "", "Set a alias for the version file")
 	cmd.Flags().BoolVar(&updateChangelogOnBump, initBumpFlagName, false, "Update changelog on bump")
 
 	return cmd
 }
 
-func initRun(dirPath, prefix string, updateChangelogOnBump bool) {
+func initRun(dirPath, alias string, updateChangelogOnBump bool) {
 	commit, err := git.GetFirstCommit()
 	if err != nil {
 		slog.Error(fmt.Sprintf("first commit: %v", err))
 		os.Exit(1)
 	}
 
-	config := config.NewConfigVersion(dirPath, "0.0.0", commit, prefix)
+	config := config.NewConfigVersion(dirPath, "0.0.0", commit, alias)
 	config.UpdateChangelogOnBump = updateChangelogOnBump
 
 	err = config.Save()
