@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	cmdInitBumpChangelog = "bump-changelog"
+	initBumpFlagName = "bump-changelog"
 )
 
 func initCmd() *cobra.Command {
@@ -23,13 +23,13 @@ func initCmd() *cobra.Command {
 		Use:   "init",
 		Short: "Start a repository to use gommitizen",
 		Run: func(cmd *cobra.Command, args []string) {
-			dirPath := cmd.Root().Flag(cmdRootDirPath).Value.String()
+			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
 			initRun(dirPath, prefix, updateChangelogOnBump)
 		},
 	}
 
 	cmd.Flags().StringVarP(&prefix, "prefix", "p", "", "Select a prefix for the version file")
-	cmd.Flags().BoolVar(&updateChangelogOnBump, cmdInitBumpChangelog, false, "Update changelog on bump")
+	cmd.Flags().BoolVar(&updateChangelogOnBump, initBumpFlagName, false, "Update changelog on bump")
 
 	return cmd
 }
