@@ -33,8 +33,8 @@ the first commit of the project.`,
 		},
 	}
 
-	cmd.Flags().StringVarP(&alias, "alias", "a", "", "Set a alias for the version file")
-	cmd.Flags().BoolVar(&updateChangelogOnBump, initBumpFlagName, false, "Update changelog on bump")
+	cmd.Flags().StringVarP(&alias, "alias", "a", "", "set a alias for the version file")
+	cmd.Flags().BoolVar(&updateChangelogOnBump, initBumpFlagName, false, "update changelog on bump")
 
 	return cmd
 }

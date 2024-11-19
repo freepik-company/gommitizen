@@ -43,8 +43,8 @@ information and all the information saved in the config file.`,
 		},
 	}
 
-	cmd.PersistentFlags().StringVarP(&output, getOutputFlagName, "o", "plain", "Select the output format {json, yaml, plain}")
-	cmd.PersistentFlags().StringVarP(&alias, getAliasFlagName, "a", "", "A alias to look for a project to show information")
+	cmd.PersistentFlags().StringVarP(&output, getOutputFlagName, "o", "plain", "select the output format {json, yaml, plain}")
+	cmd.PersistentFlags().StringVarP(&alias, getAliasFlagName, "a", "", "a alias to look for a project to show information")
 
 	cmd.AddCommand(getAllCmd())
 	cmd.AddCommand(getVersionCmd())
