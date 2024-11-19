@@ -10,13 +10,14 @@ import (
 )
 
 type ConfigVersionWrapper struct {
-	DirPath       string                 `json:"dir_path" yaml:"dir_path"`
-	FilePath      string                 `json:"file_path" yaml:"file_path"`
-	ConfigVersion map[string]interface{} `json:"config_version" yaml:"config_version"`
+	DirPath       string                 `json:"dir_path" yaml:"dir_path" plain:"dir_path"`
+	FilePath      string                 `json:"file_path" yaml:"file_path" plain:"file_path"`
+	LatestGitTag  string                 `json:"latest_git_tag" yaml:"latest_git_tag" plain:"latest_git_tag"`
+	ConfigVersion map[string]interface{} `json:"config_version" yaml:"config_version" plain:"config_version"`
 }
 
 type Wrapper struct {
-	ConfigVersionWrappers []ConfigVersionWrapper `json:"config_versions" yaml:"config_versions"`
+	ConfigVersionWrappers []ConfigVersionWrapper `json:"config_versions" yaml:"config_versions" plain:"config_versions"`
 }
 
 func PrintConfigVersions(configVersions []*ConfigVersion, fields []string, outputFormat string) (string, error) {
@@ -53,17 +54,24 @@ func printConfigVersionsYAML(wrapper Wrapper) (string, error) {
 }
 
 func printConfigVersionsPlain(wrapper Wrapper) (string, error) {
-	str := "config_versions:\n"
+	var sb strings.Builder
+	sb.WriteString("config_versions:\n")
 	for _, cvw := range wrapper.ConfigVersionWrappers {
-		str += fmt.Sprintf("  dir_path: %s\n", cvw.DirPath)
-		str += fmt.Sprintf("  file_path: %s\n", cvw.FilePath)
-		str += "  config_version:\n"
+		sb.WriteString(fmt.Sprintf("  dir_path: %s\n", cvw.DirPath))
+		sb.WriteString(fmt.Sprintf("  file_path: %s\n", cvw.FilePath))
+		sb.WriteString(fmt.Sprintf("  latest_git_tag: %s\n", cvw.LatestGitTag))
+		sb.WriteString("  config_version:\n")
 		for key, value := range cvw.ConfigVersion {
-			str += fmt.Sprintf("    %s: %s\n", key, value)
+			typ := reflect.TypeOf(value)
+			if typ.Kind() == reflect.Bool {
+				sb.WriteString(fmt.Sprintf("    %s: %t\n", key, value))
+			} else {
+				sb.WriteString(fmt.Sprintf("    %s: %s\n", key, value))
+			}
 		}
 	}
 
-	return str, nil
+	return sb.String(), nil
 }
 
 func configVersionFilter(configVersions []*ConfigVersion, fields []string, outputFormat string) Wrapper {
@@ -73,6 +81,7 @@ func configVersionFilter(configVersions []*ConfigVersion, fields []string, outpu
 		cvw := ConfigVersionWrapper{
 			DirPath:       configVersion.GetDirPath(),
 			FilePath:      configVersion.GetFilePath(),
+			LatestGitTag:  configVersion.GetGitTag(),
 			ConfigVersion: make(map[string]interface{}),
 		}
 

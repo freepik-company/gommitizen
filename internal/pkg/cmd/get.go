@@ -7,21 +7,21 @@ import (
 
 	"github.com/spf13/cobra"
 
-	configObj "github.com/freepik-company/gommitizen/internal/app/gommitizen/config"
+	"github.com/freepik-company/gommitizen/internal/app/gommitizen/config"
 )
 
 const (
-	getPrefixFlagName = "prefix"
+	getAliasFlagName  = "alias"
 	getOutputFlagName = "output"
 )
 
 func getCmd() *cobra.Command {
-	var prefix, output string
+	var alias, output string
 
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "Give a list of projects, their versions and other information",
-		Long: `Show information about the projects in the repository. It can show the version, the prefix, the commit 
+		Long: `Show information about the projects in the repository. It can show the version, the alias, the commit 
 information and all the information saved in the config file.`,
 		Example: "# To show all information in yaml format, run:\n" +
 			"gommitizen get all -o yaml\n" +
@@ -44,11 +44,11 @@ information and all the information saved in the config file.`,
 	}
 
 	cmd.PersistentFlags().StringVarP(&output, getOutputFlagName, "o", "plain", "Select the output format {json, yaml, plain}")
-	cmd.PersistentFlags().StringVarP(&prefix, getPrefixFlagName, "p", "", "A prefix to look for a project to show information")
+	cmd.PersistentFlags().StringVarP(&alias, getAliasFlagName, "a", "", "A alias to look for a project to show information")
 
 	cmd.AddCommand(getAllCmd())
 	cmd.AddCommand(getVersionCmd())
-	cmd.AddCommand(getPrefixCmd())
+	cmd.AddCommand(getAliasCmd())
 	cmd.AddCommand(getCommitCmd())
 
 	return cmd
@@ -58,13 +58,13 @@ func getAllCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "all",
 		Short: "Get all projects information",
-		Long: `Get all the information of the projects in the repository. It will show the version, the prefix, the commit
+		Long: `Get all the information of the projects in the repository. It will show the version, the alias, the commit
 information and all the information saved in the config file.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
-			prefix := cmd.Parent().Flag(getPrefixFlagName).Value.String()
+			alias := cmd.Parent().Flag(getAliasFlagName).Value.String()
 			output := cmd.Parent().Flag(getOutputFlagName).Value.String()
-			projectsRun(dirPath, prefix, output, nil)
+			projectsRun(dirPath, alias, output, nil)
 		},
 	}
 }
@@ -73,26 +73,26 @@ func getVersionCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Get the version of the projects",
-		Long:  `Get the version of the projects in the repository. It will show the version of the projects and the prefix.`,
+		Long:  `Get the version of the projects in the repository. It will show the version of the projects and the alias.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
-			prefix := cmd.Parent().Flag(getPrefixFlagName).Value.String()
+			alias := cmd.Parent().Flag(getAliasFlagName).Value.String()
 			output := cmd.Parent().Flag(getOutputFlagName).Value.String()
-			projectsRun(dirPath, prefix, output, []string{"Version", "TagPrefix"})
+			projectsRun(dirPath, alias, output, []string{"Version", "Alias"})
 		},
 	}
 }
 
-func getPrefixCmd() *cobra.Command {
+func getAliasCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "prefix",
-		Short: "Get the prefix of the projects",
-		Long:  `Get the prefix of the projects in the repository.`,
+		Use:   "alias",
+		Short: "Get the alias of the projects",
+		Long:  `Get the alias of the projects in the repository.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
-			prefix := cmd.Parent().Flag(getPrefixFlagName).Value.String()
+			alias := cmd.Parent().Flag(getAliasFlagName).Value.String()
 			output := cmd.Parent().Flag(getOutputFlagName).Value.String()
-			projectsRun(dirPath, prefix, output, []string{"TagPrefix"})
+			projectsRun(dirPath, alias, output, []string{"Alias"})
 		},
 	}
 }
@@ -104,27 +104,27 @@ func getCommitCmd() *cobra.Command {
 		Long:  `Get the commit information of the projects in the repository.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			dirPath := cmd.Root().Flag(rootDirPathFlagName).Value.String()
-			prefix := cmd.Parent().Flag(getPrefixFlagName).Value.String()
+			alias := cmd.Parent().Flag(getAliasFlagName).Value.String()
 			output := cmd.Parent().Flag(getOutputFlagName).Value.String()
-			projectsRun(dirPath, prefix, output, []string{"Commit", "TagPrefix"})
+			projectsRun(dirPath, alias, output, []string{"Commit", "Alias"})
 		},
 	}
 }
 
-func projectsRun(dirPath string, prefix string, output string, filter []string) {
+func projectsRun(dirPath string, alias string, output string, filter []string) {
 	var configVersionPaths []string
 	var err error
 
-	if prefix == "" {
-		configVersionPaths, err = configObj.FindConfigVersionFilePath(dirPath)
+	if alias == "" {
+		configVersionPaths, err = config.FindConfigVersionFilePath(dirPath)
 		if err != nil {
 			slog.Error(fmt.Sprintf("finding config version file path: %v", err))
 			os.Exit(1)
 		}
 	} else {
-		configVersionPaths, err = configObj.FindConfigVersionFilePathByPrefix(dirPath, prefix)
+		configVersionPaths, err = config.FindConfigVersionFilePathByAlias(dirPath, alias)
 		if err != nil {
-			slog.Error(fmt.Sprintf("finding config version file path by prefix: %v", err))
+			slog.Error(fmt.Sprintf("finding config version file path by alias: %v", err))
 			os.Exit(1)
 		}
 	}
@@ -134,9 +134,9 @@ func projectsRun(dirPath string, prefix string, output string, filter []string) 
 		os.Exit(0)
 	}
 
-	var configVersions []*configObj.ConfigVersion
+	var configVersions []*config.ConfigVersion
 	for _, configVersionPath := range configVersionPaths {
-		configVersionFile, err := configObj.ReadConfigVersion(configVersionPath)
+		configVersionFile, err := config.ReadConfigVersion(configVersionPath)
 		if err != nil {
 			slog.Error(fmt.Sprintf("reading configVersionFile version: %v", err))
 			continue
@@ -144,7 +144,7 @@ func projectsRun(dirPath string, prefix string, output string, filter []string) 
 		configVersions = append(configVersions, configVersionFile)
 	}
 
-	str, err := configObj.PrintConfigVersions(configVersions, filter, output)
+	str, err := config.PrintConfigVersions(configVersions, filter, output)
 	if err != nil {
 		slog.Error(fmt.Sprintf("printing config versions: %v", err))
 		os.Exit(1)

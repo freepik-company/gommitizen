@@ -10,7 +10,7 @@ import (
 
 	"github.com/freepik-company/gommitizen/internal/app/gommitizen/bumpmanager"
 	"github.com/freepik-company/gommitizen/internal/app/gommitizen/changelog"
-	configObj "github.com/freepik-company/gommitizen/internal/app/gommitizen/config"
+	"github.com/freepik-company/gommitizen/internal/app/gommitizen/config"
 	"github.com/freepik-company/gommitizen/internal/app/gommitizen/conventionalcommits"
 	"github.com/freepik-company/gommitizen/internal/app/gommitizen/git"
 )
@@ -68,7 +68,7 @@ func bumpRun(dirPath string, createChangelog bool, incrementType string) {
 		slog.Info(fmt.Sprintf("Bumping version with increment: %s", incrementType))
 	}
 
-	configVersionPaths, err := configObj.FindConfigVersionFilePath(dirPath)
+	configVersionPaths, err := config.FindConfigVersionFilePath(dirPath)
 	if err != nil {
 		slog.Error(fmt.Sprintf("find config version paths: %v", err))
 		os.Exit(1)
@@ -98,14 +98,14 @@ func bumpRun(dirPath string, createChangelog bool, incrementType string) {
 }
 
 func bumpByConfig(configVersionPath string, createChangelog bool, incrementType string) ([]string, string, error) {
-	config, err := configObj.ReadConfigVersion(configVersionPath)
+	config, err := config.ReadConfigVersion(configVersionPath)
 	if err != nil {
 		slog.Info(fmt.Sprintf("Skipping file: %s, %v", configVersionPath, err))
 		return []string{}, "", nil
 	}
 
 	modifiedFiles := make([]string, 0)
-	tagVersion := config.GetTagVersion()
+	gitTag := config.GetGitTag()
 
 	slog.Info(fmt.Sprintf("Running bump in project %s", config.GetDirPath()))
 
@@ -180,13 +180,13 @@ func bumpByConfig(configVersionPath string, createChangelog bool, incrementType 
 			slog.Info(fmt.Sprintf(" - %s", file))
 		}
 
-		tagVersion = config.GetTagVersion()
-		slog.Info("New tags: " + tagVersion)
+		gitTag = config.GetGitTag()
+		slog.Info("New tags: " + gitTag)
 
 		slog.Info(fmt.Sprintf("Updated version in %s", config.GetDirPath()))
 	} else {
 		slog.Info(fmt.Sprintf("bump skipped in %s", config.GetDirPath()))
 	}
 	slog.Info("---")
-	return modifiedFiles, tagVersion, nil
+	return modifiedFiles, gitTag, nil
 }

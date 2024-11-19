@@ -18,15 +18,15 @@ type ConfigVersion struct {
 	Version               string            `json:"version" yaml:"version" plain:"version"`
 	Commit                string            `json:"commit" yaml:"commit" plain:"commit"`
 	VersionFiles          []string          `json:"version_files" yaml:"version_files" plain:"version_files"`
-	TagPrefix             string            `json:"tag_prefix" yaml:"tag_prefix" plain:"tag_prefix"`
-	Hooks                 map[string]string `json:"hooks,omitempty" yaml:"hooks,omitempty"`
+	Alias                 string            `json:"alias" yaml:"alias" plain:"alias"`
+	Hooks                 map[string]string `json:"hooks,omitempty" yaml:"hooks,omitempty" plain:"hooks,omitempty"`
 	UpdateChangelogOnBump bool              `json:"update_changelog_on_bump,omitempty" yaml:"update_changelog_on_bump,omitempty" plain:"update_changelog_on_bump,omitempty"`
 }
 
-func NewConfigVersion(dirPath string, version string, commit string, tagPrefix string) *ConfigVersion {
-	nTagPrefix := tagPrefix
-	if len(tagPrefix) == 0 {
-		nTagPrefix = filepath.Base(dirPath)
+func NewConfigVersion(dirPath string, version string, commit string, alias string) *ConfigVersion {
+	nAlias := alias
+	if len(alias) == 0 {
+		nAlias = filepath.Base(dirPath)
 	}
 
 	return &ConfigVersion{
@@ -35,7 +35,7 @@ func NewConfigVersion(dirPath string, version string, commit string, tagPrefix s
 		Version:      version,
 		Commit:       commit,
 		VersionFiles: make([]string, 0),
-		TagPrefix:    nTagPrefix,
+		Alias:        nAlias,
 	}
 }
 
@@ -77,9 +77,9 @@ func (v ConfigVersion) GetDirPath() string {
 	return v.dirPath
 }
 
-func (v ConfigVersion) GetTagVersion() string {
-	if len(v.TagPrefix) > 0 {
-		return v.TagPrefix + "_" + v.Version
+func (v ConfigVersion) GetGitTag() string {
+	if len(v.Alias) > 0 {
+		return v.Version + "+" + v.Alias
 	}
 	return v.Version
 }

@@ -12,9 +12,9 @@ func TestNewConfigVersion(t *testing.T) {
 	dirPath := "/tmp"
 	version := "1.0.0"
 	commit := "abc123"
-	prefix := "v"
+	alias := "v"
 
-	v := NewConfigVersion(dirPath, version, commit, prefix)
+	v := NewConfigVersion(dirPath, version, commit, alias)
 
 	if v.dirPath != dirPath {
 		t.Errorf("expected path %s, got %s", dirPath, v.dirPath)
@@ -25,8 +25,8 @@ func TestNewConfigVersion(t *testing.T) {
 	if v.Commit != commit {
 		t.Errorf("expected commit %s, got %s", commit, v.Commit)
 	}
-	if v.TagPrefix != prefix {
-		t.Errorf("expected prefix %s, got %s", prefix, v.TagPrefix)
+	if v.Alias != alias {
+		t.Errorf("expected prefix %s, got %s", alias, v.Alias)
 	}
 	if len(v.VersionFiles) != 0 {
 		t.Errorf("expected empty VersionFiles, got %v", v.VersionFiles)
@@ -41,7 +41,7 @@ func TestRead(t *testing.T) {
 		Version:      "1.0.0",
 		Commit:       "abc123",
 		VersionFiles: []string{"file1", "file2"},
-		TagPrefix:    "v",
+		Alias:        "v",
 	}
 	data, err := json.Marshal(versionData)
 	if err != nil {
@@ -64,7 +64,7 @@ func TestRead(t *testing.T) {
 		Version:      "1.0.0",
 		Commit:       "abc123",
 		VersionFiles: []string{"file1", "file2"},
-		TagPrefix:    "v",
+		Alias:        "v",
 	}
 	if !reflect.DeepEqual(v, expected) {
 		t.Errorf("Read() = %v, want %v", v, expected)
