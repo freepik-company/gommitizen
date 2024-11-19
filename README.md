@@ -54,32 +54,29 @@ Increment the version of the project according to the conventional commits speci
 **Flags:**
 - `-c`, `--changelog`: generate the changelog for the newest version
 
-- `-i`, `--increment`: manually specify the desired increment {MAYOR, MINOR, PATCH}
+- `-i`, `--increment`: manually specify the desired increment {MAJOR, MINOR, PATCH}
 
 
 
 **Examples of usage:**
 
-To bump the version of a project, run:
-```bash
+```shell
+# To bump the version of a project, run:
 gommitizen bump
-```
-This will bump the version of all projects in the current directory.
-If you want to bump the version of a specific project, run:
-```bash
-gommitizen bump -d <directory>
-```
-This will bump the version of the project in the given directory.
-If you want to bump the version of projects and generate a changelog, run:
-```bash
-gommitizen bump -c
-```
-This will bump the version of the projects and generate a changelog with the changes made since the last version.
-If you want to bump the version of project to a major version, run:
-```bash
-gommitizen bump -i major
-```
+# This will bump the version of all projects in the current directory.
 
+# If you want to bump the version of a specific project, run:
+gommitizen bump -d <directory>
+# This will bump the version of the project in the given directory.
+
+# If you want to bump the version of projects and generate a changelog, run:
+gommitizen bump -c
+# This will bump the version of the projects and generate a changelog with the changes made since the last version.
+
+# If you want to bump the version of project to a major version, run:
+gommitizen bump -i MAJOR
+
+```
 
 
 
@@ -99,19 +96,15 @@ information and all the information saved in the config file.
 
 **Examples of usage:**
 
-To show all information in yaml format, run:
-```bash
+```shell
+# To show all information in yaml format, run:
 gommitizen get all -o yaml
-```
-To show the version of the projects in plain format, run:
-```bash
+# To show the version of the projects in plain format, run:
 gommitizen get version -o plain
-```
-or just:
-```bash
+# or just:
 gommitizen get version
-```
 
+```
 
 
 
@@ -134,17 +127,19 @@ Initialize the repository to use gommitizen. It will create a file with the vers
 the first commit of the project.
 
 **Flags:**
+- `-`, `--bump-changelog`: Update changelog on bump
+
 - `-p`, `--prefix`: Select a prefix for the version file
 
 
 
 **Examples of usage:**
 
-To initialize the versioning of a project, run: 
-```bash
+```shell
+# To initialize the versioning of a project, run: 
 gommitizen init -d <directory> -p <prefix>`
+# This will create a .version.json file in the given directory with the version 0.0.0.
 ```
-This will create a .version.json file in the given directory with the version 0.0.0.
 
 
 

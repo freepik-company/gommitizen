@@ -23,18 +23,12 @@ func getCmd() *cobra.Command {
 		Short: "Give a list of projects, their versions and other information",
 		Long: `Show information about the projects in the repository. It can show the version, the alias, the commit 
 information and all the information saved in the config file.`,
-		Example: "To show all information in yaml format, run:\n" +
-			"```bash\n" +
+		Example: "# To show all information in yaml format, run:\n" +
 			"gommitizen get all -o yaml\n" +
-			"```\n" +
-			"To show the alias of the projects in plain format, run:\n" +
-			"```bash\n" +
-			"gommitizen get alias -o plain\n" +
-			"```\n" +
-			"or just:\n" +
-			"```bash\n" +
-			"gommitizen get version\n" +
-			"```\n",
+			"# To show the version of the projects in plain format, run:\n" +
+			"gommitizen get version -o plain\n" +
+			"# or just:\n" +
+			"gommitizen get version\n",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if output != "json" && output != "yaml" && output != "plain" {
 				return fmt.Errorf("invalid output format: %s, supported values: json, yaml, plain", output)
@@ -49,8 +43,8 @@ information and all the information saved in the config file.`,
 		},
 	}
 
-	cmd.PersistentFlags().StringVarP(&output, getOutputFlagName, "o", "plain", "Select the output format {json, yaml, plain}")
-	cmd.PersistentFlags().StringVarP(&alias, getAliasFlagName, "a", "", "A alias to look for a project to show information")
+	cmd.PersistentFlags().StringVarP(&output, getOutputFlagName, "o", "plain", "select the output format {json, yaml, plain}")
+	cmd.PersistentFlags().StringVarP(&alias, getAliasFlagName, "a", "", "a alias to look for a project to show information")
 
 	cmd.AddCommand(getAllCmd())
 	cmd.AddCommand(getVersionCmd())

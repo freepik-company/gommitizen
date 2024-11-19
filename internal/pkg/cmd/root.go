@@ -50,8 +50,8 @@ each project.`,
 		},
 	}
 
-	root.PersistentFlags().StringVarP(&dirPath, "directory", "d", "", "Select a directory to run the command")
-	root.PersistentFlags().BoolVar(&debug, rootDebugFlagName, false, "Enable debug")
+	root.PersistentFlags().StringVarP(&dirPath, "directory", "d", "", "select a directory to run the command")
+	root.PersistentFlags().BoolVar(&debug, rootDebugFlagName, false, "enable debug")
 
 	root.AddCommand(initCmd())
 	root.AddCommand(bumpCmd())
