@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 )
@@ -15,12 +16,19 @@ import (
 type ConfigVersion struct {
 	dirPath string
 
-	Version               string            `json:"version" yaml:"version" plain:"version"`
-	Commit                string            `json:"commit" yaml:"commit" plain:"commit"`
-	VersionFiles          []string          `json:"version_files" yaml:"version_files" plain:"version_files"`
-	Alias                 string            `json:"alias" yaml:"alias" plain:"alias"`
-	Hooks                 map[string]string `json:"hooks,omitempty" yaml:"hooks,omitempty" plain:"hooks,omitempty"`
-	UpdateChangelogOnBump bool              `json:"update_changelog_on_bump,omitempty" yaml:"update_changelog_on_bump,omitempty" plain:"update_changelog_on_bump,omitempty"`
+	Version               string    `json:"version" yaml:"version" plain:"version"`
+	Commit                string    `json:"commit" yaml:"commit" plain:"commit"`
+	VersionFiles          []string  `json:"version_files" yaml:"version_files" plain:"version_files"`
+	Alias                 string    `json:"alias" yaml:"alias" plain:"alias"`
+	Hooks                 HookTypes `json:"hooks,omitempty" yaml:"hooks,omitempty" plain:"hooks,omitempty"`
+	UpdateChangelogOnBump bool      `json:"update_changelog_on_bump,omitempty" yaml:"update_changelog_on_bump,omitempty" plain:"update_changelog_on_bump,omitempty"`
+}
+
+type HookTypes struct {
+	PreBump       string `json:"pre_bump,omitempty" yaml:"pre_bump,omitempty" plain:"pre_bump,omitempty"`
+	PostBump      string `json:"post_bump,omitempty" yaml:"post_bump,omitempty" plain:"post_bump,omitempty"`
+	PreChangelog  string `json:"pre_changelog,omitempty" yaml:"pre_changelog,omitempty" plain:"pre_changelog,omitempty"`
+	PostChangelog string `json:"post_changelog,omitempty" yaml:"post_changelog,omitempty" plain:"post_changelog,omitempty"`
 }
 
 func NewConfigVersion(dirPath string, version string, commit string, alias string) *ConfigVersion {
@@ -45,6 +53,8 @@ func ReadConfigVersion(configVersionPath string) (*ConfigVersion, error) {
 		return nil, fmt.Errorf("read file %s: %v", configVersionPath, err)
 	}
 
+	slog.Debug(fmt.Sprintf("reading config version in %s with data:\n%s", configVersionPath, string(data)))
+
 	var version ConfigVersion
 	err = json.Unmarshal(data, &version)
 	if err != nil {
@@ -55,11 +65,13 @@ func ReadConfigVersion(configVersionPath string) (*ConfigVersion, error) {
 	return &version, nil
 }
 
-func (v ConfigVersion) Save() error {
+func (v *ConfigVersion) Save() error {
 	data, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return fmt.Errorf("parse struct to json: %v", err)
 	}
+
+	slog.Debug(fmt.Sprintf("saving config version in %s with data:\n%s", v.GetFilePath(), string(data)))
 
 	err = os.WriteFile(v.GetFilePath(), data, 0644)
 	if err != nil {
@@ -84,12 +96,35 @@ func (v ConfigVersion) GetGitTag() string {
 	return v.Version
 }
 
-func (v *ConfigVersion) RunHook(hookName string) error {
-	hook, ok := v.Hooks[hookName]
-	if !ok {
+func (v *ConfigVersion) RunPreBump() error {
+	return v.runHook("PreBump")
+}
+
+func (v *ConfigVersion) RunPostBump() error {
+	return v.runHook("PostBump")
+}
+
+func (v *ConfigVersion) RunPreChangelog() error {
+	return v.runHook("PreChangelog")
+}
+
+func (v *ConfigVersion) RunPostChangelog() error {
+	return v.runHook("PostChangelog")
+}
+
+func (v *ConfigVersion) runHook(hookName string) error {
+	hookValue := reflect.ValueOf(v.Hooks).FieldByName(hookName)
+	if !hookValue.IsValid() {
 		slog.Debug(fmt.Sprintf("hook %s not found", hookName))
 		return nil
 	}
+	hook := hookValue.String()
+	if len(hook) == 0 {
+		slog.Debug(fmt.Sprintf("hook %s is empty", hookName))
+		return nil
+	}
+
+	slog.Debug(fmt.Sprintf("running hook %s: %s", hookName, hook))
 
 	output, err := exec.Command("bash", "-c", hook).CombinedOutput()
 	if err != nil {
