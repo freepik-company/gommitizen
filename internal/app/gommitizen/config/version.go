@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"reflect"
 	"regexp"
 	"strings"
 )
@@ -96,49 +94,20 @@ func (v ConfigVersion) GetGitTag() string {
 	return v.Version
 }
 
-func (v *ConfigVersion) RunPreBump() error {
-	return v.runHook("PreBump")
+func (v ConfigVersion) RunPreBump() error {
+	return runHook(v, "PreBump", v.Hooks.PreBump)
 }
 
-func (v *ConfigVersion) RunPostBump() error {
-	return v.runHook("PostBump")
+func (v ConfigVersion) RunPostBump() error {
+	return runHook(v, "PostBump", v.Hooks.PostBump)
 }
 
-func (v *ConfigVersion) RunPreChangelog() error {
-	return v.runHook("PreChangelog")
+func (v ConfigVersion) RunPreChangelog() error {
+	return runHook(v, "PreChangelog", v.Hooks.PreChangelog)
 }
 
-func (v *ConfigVersion) RunPostChangelog() error {
-	return v.runHook("PostChangelog")
-}
-
-func (v *ConfigVersion) runHook(hookName string) error {
-	hookValue := reflect.ValueOf(v.Hooks).FieldByName(hookName)
-	if !hookValue.IsValid() {
-		slog.Debug(fmt.Sprintf("hook %s not found", hookName))
-		return nil
-	}
-	hook := hookValue.String()
-	if len(hook) == 0 {
-		slog.Debug(fmt.Sprintf("hook %s is empty", hookName))
-		return nil
-	}
-
-	slog.Debug(fmt.Sprintf("running hook %s: %s", hookName, hook))
-
-	output, err := exec.Command("bash", "-c", hook).CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("run hook %s: %v", hookName, err)
-	}
-
-	// TODO: Pretty log info with colors
-	if len(output) > 0 {
-		slog.Info(fmt.Sprintf("\n\033[32mHook %s output:\n%s\033[0m", hookName, string(output)))
-	} else {
-		slog.Info(fmt.Sprintf("\n\033[32mLaunch hook %s\n\033[0m", hookName))
-	}
-
-	return nil
+func (v ConfigVersion) RunPostChangelog() error {
+	return runHook(v, "PostChangelog", v.Hooks.PostChangelog)
 }
 
 func (v *ConfigVersion) UpdateVersion(newVersion string, lastCommit string) ([]string, error) {
