@@ -1,3 +1,17 @@
+## 0.8.0 (2024-11-21)
+
+### Feat
+
+- change tag for alias and change gittag format (#65)
+- add flag to init (#60)
+- actualizar readmemd (#62)
+
+### Refactor
+
+- **internal/pkg/cmd/bump.go**: Update pre-bump and post-bump scripts execution flow (#66)
+- **docs**: Improve examples in README and CLI (#64)
+- improve message of launching hooks (#59)
+
 ## 0.8.0-a3 (2024-11-12)
 
 ### Fix
