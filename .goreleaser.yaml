@@ -9,7 +9,7 @@ builds:
     binary: gommitizen
     main: ./cmd/gommitizen
     ldflags:
-      - "-X github.com/freepik-company/gommitizen/internal/version.version={{.Version}}"
+      - "-X github.com/freepik-company/gommitizen/internal/app/gommitizen/version.version={{.Version}}"
     env:
       - CGO_ENABLED=0
     goos:

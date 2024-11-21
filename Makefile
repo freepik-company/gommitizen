@@ -14,7 +14,7 @@ bin: ./bin/gommitizen ## Build go application
 
 ./bin/gommitizen: $(SOURCE_PATHS)
 	go build \
-		-ldflags "-X github.com/freepik-company/gommitizen/internal/version.version=${CURRENT_VERSION}" \
+		-ldflags "-X github.com/freepik-company/gommitizen/internal/app/gommitizen/version.version=${CURRENT_VERSION}" \
 		-o $@ $<
 
 install: bin ## Install gommitizen
