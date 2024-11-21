@@ -121,7 +121,7 @@ func bumpByConfig(configVersionPath string, createChangelog bool, incrementType 
 	// If the file has been modified, update the version
 	if incrementType != "none" {
 		// Running pre-bump scripts
-		err = config.RunHook("pre-bump")
+		err = config.RunPreBump()
 		if err != nil {
 			return []string{}, "", fmt.Errorf("pre bump scripts: %s", err)
 		}
@@ -144,14 +144,14 @@ func bumpByConfig(configVersionPath string, createChangelog bool, incrementType 
 		}
 
 		// Running post-bump scripts
-		err = config.RunHook("post-bump")
+		err = config.RunPostBump()
 		if err != nil {
 			return []string{}, "", fmt.Errorf("post bump scripts: %s", err)
 		}
 
 		if createChangelog {
 			// Running pre-changelog scripts
-			err = config.RunHook("pre-changelog")
+			err = config.RunPreChangelog()
 			if err != nil {
 				return []string{}, "", fmt.Errorf("pre changelog scripts: %s", err)
 			}
@@ -164,7 +164,7 @@ func bumpByConfig(configVersionPath string, createChangelog bool, incrementType 
 			modifiedFiles = append(modifiedFiles, changelogFilePath)
 
 			// Running post-changelog scripts
-			err = config.RunHook("post-changelog")
+			err = config.RunPostChangelog()
 			if err != nil {
 				return []string{}, "", fmt.Errorf("post changelog scripts: %s", err)
 			}
