@@ -1,3 +1,9 @@
+## 0.8.1 (2024-11-21)
+
+### Fix
+
+- **.goreleaser.yaml, Makefile**: Update build configuration for go-mod and version export locations
+
 ## 0.8.0 (2024-11-21)
 
 ### Feat
