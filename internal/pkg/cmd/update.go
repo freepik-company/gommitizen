@@ -9,30 +9,40 @@ import (
 	"log"
 )
 
+// Using go-github-selfupdate to check the latest version, ask the user if they want to update
+// and update the binary if the user agrees
 func update() {
-	// Using go-github-selfupdate to check the latest version, ask the user if they want to update
-	// and update the binary if the user agrees
 	currentVersion := version.GetVersion()
 	log.Println("Current version:", currentVersion)
 	v := semver.MustParse(currentVersion)
-	latest, err := selfupdate.UpdateSelf(v, "freepik-company/gommitizen")
+
+	latestRelease, found, err := selfupdate.DetectLatest("freepik-company/gommitizen")
 	if err != nil {
-		log.Println("Binary update failed:", err)
+		log.Println("Latest lookup failed:", err)
 		return
 	}
-	if false {
+	if !found || latestRelease.Version.Equals(v) {
 		// latest version is the same as current version. It means current binary is up to date.
 		log.Println("Current binary is the latest version", currentVersion)
 	} else {
 		// ask the user if they want to update from the standard input
 		userReply := ""
-		fmt.Print("Do you want to update to version ", latest.Version, "? (y/N): ")
-		fmt.Scanln(&userReply)
-		if userReply != "y" {
+		fmt.Print("Do you want to update from version ", currentVersion, " to ", latestRelease.Version, "? (y/n): ")
+		input, err := fmt.Scanln(&userReply)
+		if err != nil {
+			return
+		}
+		if input != 1 || (userReply != "y" && userReply != "Y") {
 			log.Println("Update canceled")
 		} else {
-			log.Println("Successfully updated to version", latest.Version)
-			log.Println("Release note:\n", latest.ReleaseNotes)
+			downloadedRelease, err := selfupdate.UpdateSelf(v, `freepik-company/gommitizen`)
+			if err != nil {
+				log.Println("Binary update failed:", err)
+				return
+			} else {
+				log.Println("Successfully updated to version", downloadedRelease.Version)
+				log.Println("Release note:\n", downloadedRelease.ReleaseNotes)
+			}
 		}
 	}
 }
