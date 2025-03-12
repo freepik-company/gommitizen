@@ -1,3 +1,9 @@
+## 0.8.2 (2025-03-12)
+
+### Fix
+
+- **.goreleaser.yaml**: add checksum
+
 ## 0.8.1 (2024-11-21)
 
 ### Fix
