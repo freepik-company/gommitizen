@@ -229,20 +229,20 @@ Example:
     ],
     "prefix": "my-prj",
     "hooks": {
-        "pre-bump": "echo 'pre-bump hook'",
-        "post-bump": "echo 'post-bump hook'",
-        "post-changelog": "echo 'post-changelog hook'",
-        "pre-changelog": "echo 'pre-changelog hook'"
+        "pre_bump": "echo 'pre-bump hook'",
+        "post_bump": "echo 'post-bump hook'",
+        "post_changelog": "echo 'post-changelog hook'",
+        "pre_changelog": "echo 'pre-changelog hook'"
     }
 }
 ```
 
 There are four hooks available:
 
-- `pre-bump`: Runs before the bump process.
-- `post-bump`: Runs after the bump process.
-- `pre-changelog`: Runs before the changelog generation.
-- `post-changelog`: Runs after the changelog generation.
+- `pre_bump`: Runs before the bump process.
+- `post_bump`: Runs after the bump process.
+- `pre_changelog`: Runs before the changelog generation.
+- `post_changelog`: Runs after the changelog generation.
 
 The hooks are shell getCommands that are executed in the root of the project. These are all optional fields.
 
