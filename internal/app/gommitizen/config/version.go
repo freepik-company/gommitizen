@@ -81,15 +81,15 @@ func (v *ConfigVersion) Save() error {
 	return nil
 }
 
-func (v ConfigVersion) GetFilePath() string {
+func (v *ConfigVersion) GetFilePath() string {
 	return filepath.Join(v.dirPath, defaultFileName)
 }
 
-func (v ConfigVersion) GetDirPath() string {
+func (v *ConfigVersion) GetDirPath() string {
 	return v.dirPath
 }
 
-func (v ConfigVersion) GetGitTag() string {
+func (v *ConfigVersion) GetGitTag() string {
 	if len(v.Alias) > 0 {
 		return v.Version + "+" + v.Alias
 	}
