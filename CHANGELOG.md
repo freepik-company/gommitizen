@@ -1,3 +1,11 @@
+## 0.8.3 (2025-05-13)
+
+### Fix
+
+- **internal/pkg/cmd/get.go**: Enhance output handling for structured formats
+- **internal/pkg/cmd/get.go**: Enhance output handling for structured formats
+- **internal/pkg/cmd/get.go**: Enhance output handling for structured formats
+
 ## 0.8.2 (2025-03-12)
 
 ### Fix
