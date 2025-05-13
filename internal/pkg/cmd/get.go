@@ -149,5 +149,11 @@ func projectsRun(dirPath string, alias string, output string, filter []string) {
 		slog.Error(fmt.Sprintf("printing config versions: %v", err))
 		os.Exit(1)
 	}
-	slog.Info(str)
+
+	// Print directly to stdout for structured formats to allow piping to tools like yq
+	if output == "json" || output == "yaml" {
+		fmt.Println(str)
+	} else {
+		slog.Info(str)
+	}
 }
