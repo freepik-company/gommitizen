@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -21,7 +22,11 @@ type Wrapper struct {
 }
 
 func PrintConfigVersions(configVersions []*ConfigVersion, fields []string, outputFormat string) (string, error) {
-	wrapper := configVersionFilter(configVersions, fields, outputFormat)
+	tagFormat := outputFormat
+	if tagFormat == "raw" {
+		tagFormat = "plain"
+	}
+	wrapper := configVersionFilter(configVersions, fields, tagFormat)
 
 	switch outputFormat {
 	case "json":
@@ -30,6 +35,8 @@ func PrintConfigVersions(configVersions []*ConfigVersion, fields []string, outpu
 		return printConfigVersionsYAML(wrapper)
 	case "plain":
 		return printConfigVersionsPlain(wrapper)
+	case "raw":
+		return printConfigVersionsRaw(wrapper)
 	}
 
 	return "", fmt.Errorf("unsupported format: %s", outputFormat)
@@ -72,6 +79,46 @@ func printConfigVersionsPlain(wrapper Wrapper) (string, error) {
 	}
 
 	return sb.String(), nil
+}
+
+func printConfigVersionsRaw(wrapper Wrapper) (string, error) {
+	var lines []string
+	single := len(wrapper.ConfigVersionWrappers) == 1
+
+	for _, cvw := range wrapper.ConfigVersionWrappers {
+		alias, _ := cvw.ConfigVersion["alias"]
+
+		// Collect sorted non-alias keys for deterministic output
+		var keys []string
+		for key := range cvw.ConfigVersion {
+			if key != "alias" {
+				keys = append(keys, key)
+			}
+		}
+		sort.Strings(keys)
+
+		var line string
+		if len(keys) == 0 {
+			// Only alias field was requested (e.g., "get alias")
+			line = fmt.Sprintf("%v", alias)
+		} else if len(keys) == 1 {
+			line = fmt.Sprintf("%v", cvw.ConfigVersion[keys[0]])
+		} else {
+			// Multiple fields: join as key:value pairs
+			var pairs []string
+			for _, key := range keys {
+				pairs = append(pairs, fmt.Sprintf("%s:%v", key, cvw.ConfigVersion[key]))
+			}
+			line = strings.Join(pairs, ",")
+		}
+
+		if !single {
+			line = fmt.Sprintf("%v=%s", alias, line)
+		}
+		lines = append(lines, line)
+	}
+
+	return strings.Join(lines, "\n"), nil
 }
 
 func configVersionFilter(configVersions []*ConfigVersion, fields []string, outputFormat string) Wrapper {
