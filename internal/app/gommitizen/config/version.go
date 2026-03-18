@@ -163,41 +163,46 @@ func (v *ConfigVersion) UpdateVersion(newVersion string, lastCommit string) ([]s
 		substring := versionFile[index+1:]
 		filePath := filepath.Join(v.dirPath, fileName)
 
-		err := updateVersionOfFiles(filePath, substring, newVersion)
+		modified, err := updateVersionOfFiles(filePath, substring, newVersion)
 		if err != nil {
 			return nil, err
 		}
-		modifiedFiles = append(modifiedFiles, filePath)
+		if modified {
+			modifiedFiles = append(modifiedFiles, filePath)
+		} else {
+			slog.Warn(fmt.Sprintf("version pattern not found in %s for key '%s'", filePath, substring))
+		}
 	}
 
 	return modifiedFiles, nil
 }
 
-func updateVersionOfFiles(filePath, substring, newVersion string) error {
+func updateVersionOfFiles(filePath, substring, newVersion string) (bool, error) {
 	file, err := os.OpenFile(filePath, os.O_RDWR, 0644)
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 	var lines []string
+	modified := false
 
 	// Regular expression to find the version in the file
 	regularExpression := ""
 	validRegexp, err := isARegExp(substring)
 	// Check if the substring is a regular expression that compiles
 	if err != nil {
-		return err
+		return false, err
 	}
 	if validRegexp { // If it is a regular expression, use it as is
 		regularExpression = substring
 	} else { // If it is a literal string, use it as a word boundary
-		regularExpression = fmt.Sprintf(`(?i)\b%s\b\s*[:=]\s*([0-9]+\.[0-9]+\.[0-9]+)`, substring)
+		regularExpression = fmt.Sprintf(`(?i)\b%s\b\s*[:=]\s*["']?([0-9]+\.[0-9]+\.[0-9]+)["']?`, substring)
 	}
 	versionRegex, err := regexp.Compile(regularExpression)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	for scanner.Scan() {
@@ -208,6 +213,9 @@ func updateVersionOfFiles(filePath, substring, newVersion string) error {
 			oldVersion := strings.TrimSpace(match[1])
 			// Replace the old version with the new version
 			newLine := strings.Replace(line, oldVersion, newVersion, 1)
+			if newLine != line {
+				modified = true
+			}
 			lines = append(lines, newLine)
 		} else {
 			// The line does not contain the substring given by 'substring'
@@ -222,7 +230,7 @@ func updateVersionOfFiles(filePath, substring, newVersion string) error {
 		file.WriteString(line + "\n")
 	}
 
-	return nil
+	return modified, nil
 }
 
 func isARegExp(s string) (bool, error) {
