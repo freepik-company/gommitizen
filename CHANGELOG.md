@@ -1,3 +1,9 @@
+## 0.8.4 (2026-03-18)
+
+### Fix
+
+- **version**: handle quoted YAML values in version_files (#79)
+
 ## 0.8.3 (2025-05-13)
 
 ### Fix
