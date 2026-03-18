@@ -30,8 +30,8 @@ information and all the information saved in the config file.`,
 			"# or just:\n" +
 			"gommitizen get version\n",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if output != "json" && output != "yaml" && output != "plain" {
-				return fmt.Errorf("invalid output format: %s, supported values: json, yaml, plain", output)
+			if output != "json" && output != "yaml" && output != "plain" && output != "raw" {
+				return fmt.Errorf("invalid output format: %s, supported values: json, yaml, plain, raw", output)
 			}
 			return nil
 		},
@@ -43,7 +43,7 @@ information and all the information saved in the config file.`,
 		},
 	}
 
-	cmd.PersistentFlags().StringVarP(&output, getOutputFlagName, "o", "plain", "select the output format {json, yaml, plain}")
+	cmd.PersistentFlags().StringVarP(&output, getOutputFlagName, "o", "plain", "select the output format {json, yaml, plain, raw}")
 	cmd.PersistentFlags().StringVarP(&alias, getAliasFlagName, "a", "", "a alias to look for a project to show information")
 
 	cmd.AddCommand(getAllCmd())
@@ -151,7 +151,7 @@ func projectsRun(dirPath string, alias string, output string, filter []string) {
 	}
 
 	// Print directly to stdout for structured formats to allow piping to tools like yq
-	if output == "json" || output == "yaml" {
+	if output == "json" || output == "yaml" || output == "raw" {
 		fmt.Println(str)
 	} else {
 		slog.Info(str)

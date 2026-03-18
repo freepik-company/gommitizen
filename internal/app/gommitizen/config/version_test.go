@@ -35,59 +35,66 @@ func TestNewConfigVersion(t *testing.T) {
 
 func TestUpdateVersionOfFiles(t *testing.T) {
 	tests := []struct {
-		name        string
-		content     string
-		substring   string
-		newVersion  string
-		wantContent string
+		name         string
+		content      string
+		substring    string
+		newVersion   string
+		wantContent  string
+		wantMatched  bool
 		wantModified bool
 	}{
 		{
-			name:        "unquoted YAML value",
-			content:     "image: myapp\n  tag: 0.8.2\nreplicas: 3\n",
-			substring:   "tag",
-			newVersion:  "0.9.0",
-			wantContent: "image: myapp\n  tag: 0.9.0\nreplicas: 3\n",
+			name:         "unquoted YAML value",
+			content:      "image: myapp\n  tag: 0.8.2\nreplicas: 3\n",
+			substring:    "tag",
+			newVersion:   "0.9.0",
+			wantContent:  "image: myapp\n  tag: 0.9.0\nreplicas: 3\n",
+			wantMatched:  true,
 			wantModified: true,
 		},
 		{
-			name:        "double-quoted YAML value",
-			content:     "image: myapp\n  tag: \"0.8.2\"\nreplicas: 3\n",
-			substring:   "tag",
-			newVersion:  "0.9.0",
-			wantContent: "image: myapp\n  tag: \"0.9.0\"\nreplicas: 3\n",
+			name:         "double-quoted YAML value",
+			content:      "image: myapp\n  tag: \"0.8.2\"\nreplicas: 3\n",
+			substring:    "tag",
+			newVersion:   "0.9.0",
+			wantContent:  "image: myapp\n  tag: \"0.9.0\"\nreplicas: 3\n",
+			wantMatched:  true,
 			wantModified: true,
 		},
 		{
-			name:        "single-quoted YAML value",
-			content:     "image: myapp\n  tag: '0.8.2'\nreplicas: 3\n",
-			substring:   "tag",
-			newVersion:  "0.9.0",
-			wantContent: "image: myapp\n  tag: '0.9.0'\nreplicas: 3\n",
+			name:         "single-quoted YAML value",
+			content:      "image: myapp\n  tag: '0.8.2'\nreplicas: 3\n",
+			substring:    "tag",
+			newVersion:   "0.9.0",
+			wantContent:  "image: myapp\n  tag: '0.9.0'\nreplicas: 3\n",
+			wantMatched:  true,
 			wantModified: true,
 		},
 		{
-			name:        "no match returns false",
-			content:     "image: myapp\nreplicas: 3\n",
-			substring:   "tag",
-			newVersion:  "0.9.0",
-			wantContent: "image: myapp\nreplicas: 3\n",
+			name:         "no match returns false",
+			content:      "image: myapp\nreplicas: 3\n",
+			substring:    "tag",
+			newVersion:   "0.9.0",
+			wantContent:  "image: myapp\nreplicas: 3\n",
+			wantMatched:  false,
 			wantModified: false,
 		},
 		{
-			name:        "same version returns false",
-			content:     "  tag: 0.9.0\n",
-			substring:   "tag",
-			newVersion:  "0.9.0",
-			wantContent: "  tag: 0.9.0\n",
+			name:         "same version returns false",
+			content:      "  tag: 0.9.0\n",
+			substring:    "tag",
+			newVersion:   "0.9.0",
+			wantContent:  "  tag: 0.9.0\n",
+			wantMatched:  true,
 			wantModified: false,
 		},
 		{
-			name:        "equals sign separator",
-			content:     "version = 1.2.3\n",
-			substring:   "version",
-			newVersion:  "1.3.0",
-			wantContent: "version = 1.3.0\n",
+			name:         "equals sign separator",
+			content:      "version = 1.2.3\n",
+			substring:    "version",
+			newVersion:   "1.3.0",
+			wantContent:  "version = 1.3.0\n",
+			wantMatched:  true,
 			wantModified: true,
 		},
 	}
@@ -100,9 +107,12 @@ func TestUpdateVersionOfFiles(t *testing.T) {
 				t.Fatalf("failed to write temp file: %v", err)
 			}
 
-			modified, err := updateVersionOfFiles(tmpFile, tt.substring, tt.newVersion)
+			matched, modified, err := updateVersionOfFiles(tmpFile, tt.substring, tt.newVersion)
 			if err != nil {
 				t.Fatalf("updateVersionOfFiles() error = %v", err)
+			}
+			if matched != tt.wantMatched {
+				t.Errorf("updateVersionOfFiles() matched = %v, want %v", matched, tt.wantMatched)
 			}
 			if modified != tt.wantModified {
 				t.Errorf("updateVersionOfFiles() modified = %v, want %v", modified, tt.wantModified)
