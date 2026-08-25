@@ -58,6 +58,18 @@ func GetLastCommit() (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
+func GetCurrentBranch(dirPath string) (string, error) {
+	cmd := []string{"git", "-C", dirPath, "rev-parse", "--abbrev-ref", "HEAD"}
+	slog.Debug(fmt.Sprintf("exec: %s", strings.Join(cmd, " ")))
+
+	output, err := exec.Command(cmd[0], cmd[1:]...).Output()
+	if err != nil {
+		return "", fmt.Errorf("fail %s: %v", strings.Join(cmd, " "), err)
+	}
+
+	return strings.TrimSpace(string(output)), nil
+}
+
 // https://git-scm.com/docs/pretty-formats
 func GetCommits(fromCommit string, fromPath string) ([]Commit, error) {
 	pretty := `--pretty=format:'%H||%ad||%s'`
