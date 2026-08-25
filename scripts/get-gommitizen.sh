@@ -13,6 +13,23 @@ BINARY_NAME="gommitizen"
 OS=$(uname -s)
 ARCH=$(uname -m)
 
+# Normalize uname architecture names to the Go architecture names used by GoReleaser.
+case "$ARCH" in
+    x86_64|amd64)
+        ARCH_TYPE="amd64"
+        ;;
+    arm64|aarch64)
+        ARCH_TYPE="arm64"
+        ;;
+    i386|i486|i586|i686)
+        ARCH_TYPE="386"
+        ;;
+    *)
+        echo "Architecture $ARCH not supported."
+        exit 1
+        ;;
+esac
+
 # Check if the system is supported
 if [[ "$OS" == "Linux" ]]; then
     OS_TYPE="linux"
@@ -27,7 +44,7 @@ fi
 LATEST_RELEASE=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 
 # Form the asset URL
-ASSET_URL=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"browser_download_url":' | grep "${OS_TYPE}_${ARCH}" | sed -E 's/.*"([^"]+)".*/\1/')
+ASSET_URL=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"browser_download_url":' | grep "${OS_TYPE}_${ARCH_TYPE}" | sed -E 's/.*"([^"]+)".*/\1/')
 
 # Download the binary
 if [[ -z "$ASSET_URL" ]]; then
