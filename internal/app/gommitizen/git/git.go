@@ -67,7 +67,12 @@ func GetCurrentBranch(dirPath string) (string, error) {
 		return "", fmt.Errorf("fail %s: %v", strings.Join(cmd, " "), err)
 	}
 
-	return strings.TrimSpace(string(output)), nil
+	branch := strings.TrimSpace(string(output))
+	if branch == "HEAD" {
+		return "", nil
+	}
+
+	return branch, nil
 }
 
 // https://git-scm.com/docs/pretty-formats

@@ -22,6 +22,7 @@ func bumpCmd() *cobra.Command {
 	var validIncrements = []string{"MAJOR", "MINOR", "PATCH"}
 	var incrementType string
 	var createChangelog bool
+	var assumeYes bool
 
 	cmd := &cobra.Command{
 		Use:   "bump",
@@ -62,7 +63,7 @@ func bumpCmd() *cobra.Command {
 				return fmt.Errorf("current branch: %w", err)
 			}
 
-			continueBump, err := confirmBumpOnBranch(branch, cmd.InOrStdin(), cmd.OutOrStdout())
+			continueBump, err := confirmBumpOnBranch(branch, assumeYes, cmd.InOrStdin(), cmd.OutOrStdout())
 			if err != nil {
 				return err
 			}
@@ -78,25 +79,42 @@ func bumpCmd() *cobra.Command {
 
 	cmd.Flags().BoolVarP(&createChangelog, "changelog", "c", false, "generate the changelog for the newest version")
 	cmd.Flags().StringVarP(&incrementType, "increment", "i", "", "manually specify the desired increment {MAJOR, MINOR, PATCH}")
+	cmd.Flags().BoolVarP(&assumeYes, "yes", "y", false, "automatically confirm a bump outside main or master, including detached HEAD")
 
 	return cmd
 }
 
-func confirmBumpOnBranch(branch string, input io.Reader, output io.Writer) (bool, error) {
+func confirmBumpOnBranch(branch string, assumeYes bool, input io.Reader, output io.Writer) (bool, error) {
 	if branch == "main" || branch == "master" {
 		return true, nil
 	}
 
-	fmt.Fprintf(
-		output,
-		"Warning: you are running a bump on branch %q, not main or master. A squash merge can make the stored commit unavailable and prevent future bumps.\n",
-		branch,
-	)
+	if branch == "" {
+		fmt.Fprintln(
+			output,
+			"Warning: you are running a bump from a detached HEAD. A squash merge can make the stored commit unavailable and prevent future bumps.",
+		)
+	} else {
+		fmt.Fprintf(
+			output,
+			"Warning: you are running a bump on branch %q, not main or master. A squash merge can make the stored commit unavailable and prevent future bumps.\n",
+			branch,
+		)
+	}
+
+	if assumeYes {
+		return true, nil
+	}
+
 	fmt.Fprint(output, "Continue with the bump? [y/N] ")
 
 	answer, err := bufio.NewReader(input).ReadString('\n')
 	if err != nil && !errors.Is(err, io.EOF) {
 		return false, fmt.Errorf("read bump confirmation: %w", err)
+	}
+	if errors.Is(err, io.EOF) && strings.TrimSpace(answer) == "" {
+		fmt.Fprintln(output)
+		return false, errors.New("bump confirmation requires input; rerun with --yes to continue")
 	}
 
 	switch strings.ToLower(strings.TrimSpace(answer)) {

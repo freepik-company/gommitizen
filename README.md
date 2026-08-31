@@ -56,6 +56,8 @@ Increment the version of the project according to the conventional commits speci
 
 - `-i`, `--increment`: manually specify the desired increment {MAJOR, MINOR, PATCH}
 
+- `-y`, `--yes`: automatically confirm a bump outside main or master, including detached HEAD
+
 
 
 **Examples of usage:**
