@@ -56,6 +56,7 @@ each project.`,
 	root.AddCommand(initCmd())
 	root.AddCommand(bumpCmd())
 	root.AddCommand(getCmd())
+	root.AddCommand(selfUpdate())
 
 	return root
 }
