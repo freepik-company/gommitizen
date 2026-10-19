@@ -2,9 +2,7 @@
 name = "cz_conventional_commits"
 tag_format = "$version"
 version_scheme = "semver"
-version = "0.8.4"
-update_changelog_on_bump = true
+# The version lives in the git tags only: the release workflow tags main and
+# never commits back to it, so there is no version literal to keep in sync.
+version_provider = "scm"
 major_version_zero = true
-version_files = [
-    "cmd/root.go",
-]

@@ -1,19 +1,146 @@
-# .github/workflows/release.yml
-name: Make Release on Tag Push
+# .github/workflows/release.yaml
+name: Release
 
+# Every push to main computes the next version from the conventional commits
+# since the last tag (commitizen), pushes that tag and publishes the release
+# with GoReleaser in the same run.
+#
+# Tag-only on purpose: the org ruleset on main requires a reviewed PR and
+# GITHUB_TOKEN cannot bypass it, so the workflow never commits a `bump:` back
+# to main. The version is read from the tags (`version_provider = "scm"` in
+# .cz.toml) and the release notes go to the GitHub Release.
+#
+# GoReleaser runs here and not in a separate tag-triggered workflow because a
+# tag pushed with GITHUB_TOKEN does not trigger other workflows. Pushing a tag
+# by hand still publishes it, as before.
 on:
   push:
+    branches:
+      - main
     tags:
-      - '*.*.*'  # Simple semantic version v1.2.3
+      - '*.*.*'  # Simple semantic version 1.2.3
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Compute and print the next version without tagging or releasing"
+        type: boolean
+        default: true
+
+# Granted per job, so only what each job needs can write.
+permissions: {}
+
+# Runs from main share one group, so two automatic releases never run at once;
+# a newer run entering a group cancels the pending one, which is harmless there
+# because the next run recomputes from the latest tag. A tag pushed by hand and
+# a dry run each get a group of their own, so neither can be evicted by (or
+# evict) a queued run from main.
+concurrency:
+  group: >-
+    release-${{
+      (github.event_name == 'workflow_dispatch'
+       && format('{0}', inputs.dry_run) == 'true') && github.run_id
+      || github.ref_type == 'tag' && github.ref
+      || 'publish' }}
+  cancel-in-progress: false
 
 jobs:
-  release:
-    name: Publish Release
+  version:
+    name: Compute and push version tag
+    if: ${{ github.ref_type == 'branch' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # push the tag
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # workflow_dispatch lets anyone pick any branch in the UI; a real tag
+      # must only ever point at reviewed code on the default branch.
+      - name: Only release from the default branch
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DEFAULT_BRANCH}" ] || [ "${GITHUB_REF}" != "refs/heads/${DEFAULT_BRANCH}" ]; then
+            echo "::error::refusing to release ${GITHUB_REF}: releases are only cut from the default branch. Use dry_run to preview."
+            exit 1
+          fi
+
+      - name: Python configuration
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install commitizen
+        run: pip install commitizen==4.16.5
+
+      - name: Compute next version
+        id: next
+        run: |
+          set -euo pipefail
+          # cz exits non-zero both when there is nothing to release and on real
+          # errors: only the former is a green no-op.
+          set +e
+          NEXT=$(cz bump --get-next 2>cz_err); RC=$?
+          set -e
+          if [ "${RC}" -ne 0 ]; then
+            if [ "${RC}" -eq 3 ] || [ "${RC}" -eq 21 ] \
+               || grep -qiE "NoCommitsFound|NoneIncrement|no commits found|no new commits" cz_err; then
+              echo "Nothing to release."
+              NEXT=""
+            else
+              echo "::error::cz bump --get-next failed (rc=${RC})"
+              cat cz_err
+              exit "${RC}"
+            fi
+          fi
+          echo "version=${NEXT}" >> "$GITHUB_OUTPUT"
+
+      - name: Push tag
+        id: tag
+        if: ${{ steps.next.outputs.version != '' }}
+        env:
+          TAG: ${{ steps.next.outputs.version }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [ "${DRY_RUN}" = "true" ]; then
+            echo "DRY RUN — would release ${TAG}"
+            exit 0
+          fi
+          if [ -n "$(git ls-remote --tags origin "refs/tags/${TAG}")" ]; then
+            echo "Tag ${TAG} already exists on origin — nothing to publish."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG}" -m "Release ${TAG}"
+          git push origin "refs/tags/${TAG}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+  release:
+    name: Publish Release
+    needs: version
+    # A tag pushed by hand skips `version`; on main, publish only what
+    # `version` has just tagged.
+    if: ${{ !cancelled() && (github.ref_type == 'tag' || needs.version.outputs.tag != '') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # create the GitHub Release
+      packages: write  # push the image to ghcr.io
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_type == 'tag' && github.ref || format('refs/tags/{0}', needs.version.outputs.tag) }}
+          fetch-depth: 0
 
       - name: Go configuration
         uses: actions/setup-go@v4

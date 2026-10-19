@@ -183,30 +183,29 @@ To run the project in development mode, run:
 go run ./cmd/gommitizen/main.go
 ```
 
-To run a new release locally, run:
+Releases are automatic. Every push to `main` runs the `Release` workflow, which computes the next
+version from the conventional commits since the last tag (commitizen), pushes that tag and publishes
+the release with GoReleaser (binaries and docker image). Commits that do not bump the version
+(`ci:`, `docs:`, ...) release nothing.
+
+The workflow only pushes a tag: it never commits back to `main`. The version lives in the git tags
+(`version_provider = "scm"` in `.cz.toml`) and the release notes are published on the GitHub
+Release. `CHANGELOG.md` keeps the history up to 0.8.4.
+
+To preview the next version without releasing anything, run the `Release` workflow manually from
+the Actions tab with `dry_run` enabled (the default).
+
+To force a version by hand, push the tag yourself; the same workflow publishes it:
 
 ```bash
-make release
+git tag -a 1.2.3 -m "Release 1.2.3"
+git push origin 1.2.3
 ```
 
-If you want to run the release in pipeline, run:
+To test the release build locally, without publishing anything, run:
 
 ```bash
-make bump
-```
-
-to bump the version of the project and changelog. Then push the changes and tag to the repository to trigger the pipeline. That will generate the release and publish the binaries and docker image.
-
-If you want to increase the version manually, run:
-
-```bash
-cz bump --increment (MAJOR|MINOR|PATCH) --changelog
-```
-
-Then push the tag to the repository:
-
-```bash
-git push && git push --tags
+make test-release
 ```
 
 ## License
