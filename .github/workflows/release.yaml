@@ -29,14 +29,18 @@ on:
 # Granted per job, so only what each job needs can write.
 permissions: {}
 
-# A single group so two releases never run at once. A dry run gets a group of
-# its own: a newer run entering a group cancels the pending one, and a preview
-# must not evict a queued release.
+# Runs from main share one group, so two automatic releases never run at once;
+# a newer run entering a group cancels the pending one, which is harmless there
+# because the next run recomputes from the latest tag. A tag pushed by hand and
+# a dry run each get a group of their own, so neither can be evicted by (or
+# evict) a queued run from main.
 concurrency:
   group: >-
     release-${{
       (github.event_name == 'workflow_dispatch'
-       && format('{0}', inputs.dry_run) == 'true') && github.run_id || 'publish' }}
+       && format('{0}', inputs.dry_run) == 'true') && github.run_id
+      || github.ref_type == 'tag' && github.ref
+      || 'publish' }}
   cancel-in-progress: false
 
 jobs:
@@ -133,7 +137,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_type == 'tag' && github.ref || format('refs/tags/{0}', needs.version.outputs.tag) }}
           fetch-depth: 0
