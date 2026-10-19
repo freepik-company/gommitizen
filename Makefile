@@ -23,17 +23,21 @@ install: bin ## Install gommitizen
 uninstall:  ## Uninstall gommitizen
 	rm /usr/local/bin/gommitizen
 
+# The version lives in the git tags (version_provider = "scm"), so a bump is
+# just a new annotated tag; pushing it publishes the release.
+CZ_TAG = next=$$(cz bump --get-next $(1)) && git tag -a "$$next" -m "Release $$next" && echo "Tagged $$next, push it with: git push origin $$next"
+
 bump: ## Bump version using commitizen
-	cz bump
+	@$(call CZ_TAG,)
 
 bump-alpha: ## Bump version using commitizen (alpha)
-	cz bump -pr alpha
+	@$(call CZ_TAG,--prerelease alpha)
 
 bump-beta: ## Bump version using commitizen (beta)
-	cz bump -pr beta
+	@$(call CZ_TAG,--prerelease beta)
 
 bump-rc: ## Bump version using commitizen (release candidate)
-	cz bump -pr rc
+	@$(call CZ_TAG,--prerelease rc)
 
 release: bump ## Release new version
 	goreleaser release
